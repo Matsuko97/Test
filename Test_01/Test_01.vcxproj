@@ -84,10 +84,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtRcc Include="Test.qrc" />
+    <QtUic Include="PlotWindow.ui" />
+    <QtUic Include="SideBar.ui" />
     <QtUic Include="Test.ui" />
     <QtMoc Include="Test.h" />
     <ClCompile Include="ExperimentParam.cpp" />
     <ClCompile Include="PeakFindingAlgorithm.cpp" />
+    <ClCompile Include="PlotWindow.cpp" />
+    <ClCompile Include="SideBar.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -95,6 +99,8 @@
     <ClInclude Include="ExperimentParam.h" />
     <ClInclude Include="Include.h" />
     <ClInclude Include="PeakFindingAlgorithm.h" />
+    <QtMoc Include="SideBar.h" />
+    <QtMoc Include="PlotWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

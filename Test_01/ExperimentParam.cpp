@@ -11,8 +11,8 @@ Experiment::Experiment() {
 }
 
 Experiment::~Experiment() {
-    delete oriData;
-    delete xyData;
+    free(oriData);
+    free(xyData);
 }
 
 int Experiment::usingBET() {

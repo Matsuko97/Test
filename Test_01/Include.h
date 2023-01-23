@@ -9,3 +9,5 @@
 #include "Test.h"
 #include "ExperimentParam.h"
 #include "PeakFindingAlgorithm.h"
+#include "PlotWindow.h"
+#include "SideBar.h"

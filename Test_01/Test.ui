@@ -37,72 +37,12 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QWidget" name="SideBar" native="true">
-      <property name="enabled">
-       <bool>true</bool>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string/>
       </property>
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>199</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QTabWidget" name="tabWidget">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <widget class="QWidget" name="tab">
-          <attribute name="title">
-           <string>Tab 1</string>
-          </attribute>
-         </widget>
-         <widget class="QWidget" name="tab_2">
-          <attribute name="title">
-           <string>Tab 2</string>
-          </attribute>
-         </widget>
-        </widget>
-       </item>
-       <item>
-        <widget class="QListView" name="listView">
-         <property name="lineWidth">
-          <number>0</number>
-         </property>
-         <property name="autoScrollMargin">
-          <number>16</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QWidget" name="Window" native="true">
-      <property name="contextMenuPolicy">
-       <enum>Qt::DefaultContextMenu</enum>
+      <property name="textFormat">
+       <enum>Qt::AutoText</enum>
       </property>
      </widget>
     </item>
@@ -241,6 +181,12 @@
    </property>
   </action>
   <action name="actionSideBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>SideBar</string>
    </property>
@@ -274,8 +220,8 @@
    <slot>SaveFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>15</x>
-     <y>10</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>-35</x>

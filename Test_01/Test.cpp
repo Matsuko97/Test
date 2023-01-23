@@ -6,11 +6,32 @@ Test::Test(QWidget *parent)
     ui.setupUi(this);
     //showMaximized();
 
-    //connect(ui.actionSave, SIGNAL(triggered()), this, SLOT(SaveFile()));
+    plot = new PlotWindow();
+
+    connect(ui.actionPlot, SIGNAL(triggered()), this, SLOT(ShowPlotWindow()));
+
+    sidebar = new SideBar();
+    connect(ui.actionSideBar, SIGNAL(triggered()), this, SLOT(ShowSideBar()));
+    sidebar->setParent(this);
+    if (ui.actionSideBar->isChecked()) {
+        //ui.verticalLayout->addWidget(sidebar);
+        QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
+        int x = globalPos.x();//x坐标
+        int y = globalPos.y() + ui.MENU->height();//y坐标
+        sidebar->resize(this->width()/4, this->height());
+        sidebar->move(x, y);//窗口移动
+        sidebar->show();
+    }
 }
 
 Test::~Test()
-{}
+{
+    if(plot)
+        delete plot;
+
+    if (sidebar)
+        delete sidebar;
+}
 
 void Test::FileOpen() {
     QString curPath = QDir::currentPath();//获取系统当前目录
@@ -120,4 +141,25 @@ void Test::SaveFile() {
     }
     else
         return;
+}
+
+void Test::ShowPlotWindow() {
+    plot->show();
+}
+
+void Test::ShowSideBar() {
+    if (ui.actionSideBar->isChecked()) {
+        sidebar->show();
+        this->resize(this->size() - QSize(1, 1));
+        this->resize(this->size() + QSize(1, 1));
+    }
+    else {
+        sidebar->hide();
+    }
+}
+
+void Test::resizeEvent(QResizeEvent* event) {
+    if (nullptr != sidebar && !sidebar->isHidden()) {
+        sidebar->resize(ui.centralWidget->width() / 4, ui.centralWidget->height());
+    }
 }

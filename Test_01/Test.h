@@ -4,6 +4,8 @@
 #include "ui_Test.h"
 #include "ExperimentParam.h"
 #include "PeakFindingAlgorithm.h"
+#include "PlotWindow.h"
+#include "SideBar.h"
 
 class Test : public QMainWindow
 {
@@ -29,6 +31,15 @@ public:
 private slots:
     void FileOpen();
     void SaveFile();
+    void ShowPlotWindow();
+    void ShowSideBar();
+
+public:
+    PlotWindow* plot;
+    SideBar* sidebar;
+
+protected:
+    virtual void resizeEvent(QResizeEvent* event) override;
 
 private:
     Experiment exp;
