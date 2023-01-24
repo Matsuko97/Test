@@ -88,7 +88,7 @@
     <QtUic Include="SideBar.ui" />
     <QtUic Include="Test.ui" />
     <QtMoc Include="Test.h" />
-    <ClCompile Include="ExperimentParam.cpp" />
+    <ClCompile Include="Calculation.cpp" />
     <ClCompile Include="PeakFindingAlgorithm.cpp" />
     <ClCompile Include="PlotWindow.cpp" />
     <ClCompile Include="SideBar.cpp" />
@@ -96,7 +96,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ExperimentParam.h" />
+    <ClInclude Include="Calculation.h" />
     <ClInclude Include="Include.h" />
     <ClInclude Include="PeakFindingAlgorithm.h" />
     <QtMoc Include="SideBar.h" />

@@ -40,7 +40,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ExperimentParam.cpp">
+    <ClCompile Include="Calculation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PeakFindingAlgorithm.cpp">
@@ -57,7 +57,7 @@
     <ClInclude Include="Include.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExperimentParam.h">
+    <ClInclude Include="Calculation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PeakFindingAlgorithm.h">
@@ -65,10 +65,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="PlotWindow.ui">
+    <QtUic Include="SideBar.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="SideBar.ui">
+    <QtUic Include="PlotWindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

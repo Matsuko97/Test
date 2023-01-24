@@ -24,26 +24,47 @@ struct LineFitInfo {
     double intercept;
 };
 
-class Experiment {
+
+class DataManager {
+public:
+    Data* oriData;
+    QString filename;
+    int NumberOfData;
+
+public:
+    DataManager() {
+        oriData = nullptr;
+        NumberOfData = 0;
+    }
+
+    ~DataManager() {
+        free(oriData);
+    }
+
+    Data* GetOriData() {
+        return oriData;
+    }
+};
+
+class Calculation {
 public:
     //Parameter sorbentParam[5];
-    QString filename;
     Theory theory;
     double MolecularWeight;
     double MolecularDensity;
-    int NumberOfData;
     Data* oriData;
     Data* xyData;
+    int NumberOfData;
     LineFitInfo lineFitInfo;
     double specificArea;
 
 public:
-    Experiment();
-    ~Experiment();
+    Calculation();
+    ~Calculation();
 
     int usingBET();
     int usingLangmuir();
     void LineFit();
     void CalcSpecificArea();
-    void CalcProcess();
+    void CalcProcess(DataManager* dataManager);
 };

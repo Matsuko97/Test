@@ -1,19 +1,19 @@
 #include "Include.h"
 
-PeakNode* Peaks;
-
-void Test::TrendAccumulation(Experiment exp) {
+void PeakFinding::TrendAccumulation(DataManager* data) {
+	Data* oriData = data->GetOriData();
+	int num = data->NumberOfData;
 	int j, PeaksThreshold = 0;
-	int* TestData = (int*)calloc(exp.NumberOfData, sizeof(int));
+	int* TestData = (int*)calloc(data->NumberOfData, sizeof(int));
 	PeakNode* p;
 
-	for (j = 0; j < exp.NumberOfData; j++)
+	for (j = 0; j < num; j++)
 	{
 		//TestData_y[j] = TestData[j].y ;
-		TestData[j] = exp.oriData[j].y * RoundRatio;
+		TestData[j] = oriData[j].y * RoundRatio;
 	}
 
-	FindPeaks(TestData, exp.NumberOfData);
+	FindPeaks(TestData, num);
 
 	if (Peaks == NULL) //Æ¬¶ÎÖĞÎŞ·å
 	{
@@ -23,45 +23,12 @@ void Test::TrendAccumulation(Experiment exp) {
 
 	PeaksThreshold = ScreenPeaks(TestData);
 
-	WriteData(exp.filename, Peaks, TestData, PeaksThreshold);
+	//WriteData(data->filename, Peaks, TestData, PeaksThreshold);
+	//FreeLink(Peaks);
+	//Peaks = NULL;
 }
 
-bool Test::WriteData(QString name, PeakNode* Peaks, int* TestData, int PeaksThreshold) {
-	QString filename = GenerateFileName(name);
-
-	QFile file(filename);
-
-	PeakNode* p = Peaks;
-
-	if (file.open(QIODevice::ReadWrite | QIODevice::Text)) {
-		QTextStream stream(&file);
-		stream.seek(file.size());
-
-		while(p!=NULL) {
-			if (abs(TestData[p->indPeak] - TestData[p->indStart]) >= PeaksThreshold) //ÉèÖÃãĞÖµ£¬¹ıÂËµôĞ¡·åRoundRatio*80/100
-			{
-				QString str = QString("%1 %2").arg(exp.oriData[p->indStart].x, 0, 'f', 3).arg(exp.oriData[p->indStart].y, 0, 'f', 3);
-				stream << str << endl;
-				str = QString("%1 %2").arg(exp.oriData[p->indPeak].x, 0, 'f', 3).arg(exp.oriData[p->indPeak].y, 0, 'f', 3);
-				stream << str << endl;
-				str = QString("%1 %2").arg(exp.oriData[p->indEnd].x, 0, 'f', 3).arg(exp.oriData[p->indEnd].y, 0, 'f', 3);
-				stream << str << endl;
-			}
-			p = p->next;
-		}
-		
-		p = NULL;
-		FreeLink(Peaks);
-		Peaks = NULL;
-
-		file.close();
-
-		return true;
-	}
-	return false;
-}
-
-void Test::FindPeaks(int* src, int ReadNums)
+void PeakFinding::FindPeaks(int* src, int ReadNums)
 {
 	int i, j, diff, accumulation = 0, peakThreshold = 0, count = 0, maxDiff = 0;
 	int* sign = (int*)calloc(ReadNums, sizeof(int));
@@ -194,7 +161,7 @@ void Test::FindPeaks(int* src, int ReadNums)
 	q = NULL;
 }
 
-int Test::ScreenPeaks(int* src)   // ±éÀú¼ì²âµ½µÄ·å£¬È¡·åÖµµãµÚÈı´óµÄ·å¸ß×÷ÎªãĞÖµ
+int PeakFinding::ScreenPeaks(int* src)   // ±éÀú¼ì²âµ½µÄ·å£¬È¡·åÖµµãµÚÈı´óµÄ·å¸ß×÷ÎªãĞÖµ
 {
 	PeakNode*    p;
 	int* iPeaksHeight = (int*)malloc(iPeak_No * sizeof(int));
@@ -241,7 +208,7 @@ int Test::ScreenPeaks(int* src)   // ±éÀú¼ì²âµ½µÄ·å£¬È¡·åÖµµãµÚÈı´óµÄ·å¸ß×÷ÎªãĞÖ
 	return PeaksThreshold;
 }
 
-void Test::FreeLink(PeakNode* p)
+void PeakFinding::FreeLink(PeakNode* p)
 {
 	PeakNode* q;
 	while (p != NULL)

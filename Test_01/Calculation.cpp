@@ -1,21 +1,19 @@
 #include "Include.h"
 
-Experiment::Experiment() {
+Calculation::Calculation() {
     theory = BET;
     MolecularWeight = 0.0;
     MolecularDensity = 0.0;
-    NumberOfData = 0;
-    oriData = NULL;
-    xyData = NULL;
+    oriData = nullptr;
+    xyData = nullptr;
     specificArea = 0.0;
 }
 
-Experiment::~Experiment() {
-    free(oriData);
-    free(xyData);
+Calculation::~Calculation() {
+    //free(xyData);
 }
 
-int Experiment::usingBET() {
+int Calculation::usingBET() {
     for (int i = 0; i < NumberOfData; ++i) {
         xyData[i].x = oriData[i].x;
         xyData[i].y = xyData[i].x / (oriData[i].y * (1 - xyData[i].x));
@@ -23,7 +21,7 @@ int Experiment::usingBET() {
     return 0;
 }
 
-int Experiment::usingLangmuir() {
+int Calculation::usingLangmuir() {
     for (int i = 0; i < NumberOfData; ++i) {
         xyData[i].x = oriData[i].x / 760;//p/p0
         xyData[i].y = xyData[i].x / oriData[i].y;//p/(p0*v)
@@ -31,7 +29,7 @@ int Experiment::usingLangmuir() {
     return 0;
 }
 
-void Experiment::LineFit() {
+void Calculation::LineFit() {
     double sumX2 = 0.0;
     double sumY = 0.0;
     double sumX = 0.0;
@@ -55,7 +53,7 @@ void Experiment::LineFit() {
     return;
 }
 
-void Experiment::CalcSpecificArea() {
+void Calculation::CalcSpecificArea() {
     double am;
     double Vm, vm;
     vm = MolecularWeight / (MolecularDensity * AVOGADRO);        //molecularMass是分子量（N2:28），density是密度(N2：0.808g/cm^3)，AVOGADRO是阿伏伽德罗常数Na
@@ -82,7 +80,11 @@ void Experiment::CalcSpecificArea() {
     return;
 }
 
-void Experiment::CalcProcess() {
+void Calculation::CalcProcess(DataManager* dataManager) {
+    oriData = dataManager->GetOriData();
+    xyData = (Data*)calloc(dataManager->NumberOfData, sizeof(Data));
+    NumberOfData = dataManager->NumberOfData;
+
     if (oriData != NULL) {
         switch (theory) {
         case Langmuir:

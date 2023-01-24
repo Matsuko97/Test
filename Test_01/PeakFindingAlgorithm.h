@@ -9,3 +9,17 @@ struct PeakNode {
 	int           indEnd;
 	struct PeakNode* next;
 };
+
+class PeakFinding {
+public:
+	PeakNode* Peaks;
+
+public:
+	//Peak-Finding Algorithm ******** Trend Accumulation
+	void TrendAccumulation(DataManager* data);
+	void FindPeaks(int* src, int ReadNums);
+	int ScreenPeaks(int* src);
+	void FreeLink(PeakNode* p);
+
+
+};

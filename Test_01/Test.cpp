@@ -4,10 +4,9 @@ Test::Test(QWidget *parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
-    //showMaximized();
 
+    dataManager = new DataManager();
     plot = new PlotWindow();
-
     connect(ui.actionPlot, SIGNAL(triggered()), this, SLOT(ShowPlotWindow()));
 
     sidebar = new SideBar();
@@ -22,23 +21,33 @@ Test::Test(QWidget *parent)
         sidebar->move(x, y);//窗口移动
         sidebar->show();
     }
+
+    dataManager = new DataManager();
+    
+    connect(ui.actionMethod, SIGNAL(triggered()), this, SLOT(OnCalculation()));
+    connect(ui.actionPeak_Finding_Algorithm, SIGNAL(triggered()), this, SLOT(OnCalculation()));
+    
+    showMaximized();
 }
 
 Test::~Test()
 {
-    if(plot)
+    if (plot)
         delete plot;
 
     if (sidebar)
         delete sidebar;
+
+    if (dataManager)
+        delete dataManager;
 }
 
 void Test::FileOpen() {
     QString curPath = QDir::currentPath();//获取系统当前目录
     QString filter = QString::fromLocal8Bit("文本文件(*.txt);;所有文件(*.*)"); //文件过滤器
-    exp.filename = QFileDialog::getOpenFileName(this, tr("Open"), curPath, filter);
+    dataManager->filename = QFileDialog::getOpenFileName(this, tr("Open"), curPath, filter);
 
-    if (!GetData(exp.filename)) {
+    if (!ReadData(dataManager->filename)) {
         QString dlgTitle = "Error";
         QString strInfo = QString::fromLocal8Bit("文件打开失败");
         QMessageBox::critical(this, dlgTitle, strInfo);
@@ -47,7 +56,7 @@ void Test::FileOpen() {
     return;
 }
 
-bool Test::GetData(QString filename) {
+bool Test::ReadData(QString filename) {
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return false;
@@ -58,20 +67,18 @@ bool Test::GetData(QString filename) {
         QString line = in.readLine();
         count++;
     }
-    exp.NumberOfData = count;
-    exp.oriData = (Data*)calloc(exp.NumberOfData, sizeof(Data));
-    exp.xyData = (Data*)calloc(exp.NumberOfData, sizeof(Data));
+    dataManager->NumberOfData = count;
+    dataManager->oriData = (Data*)calloc(dataManager->NumberOfData, sizeof(Data));
     file.close();
-
     
     file.open(QIODevice::ReadOnly | QIODevice::Text);
-    for (int i = 0; i < exp.NumberOfData; i++){
+    for (int i = 0; i < dataManager->NumberOfData; i++){
         QByteArray line = file.readLine();
         QString str(line);
         char* text = NULL;
         text = line.data();
-        sscanf(text, "%lf %lf\n", &exp.oriData[i].x, &exp.oriData[i].y);
-        //RegExp(str, exp.oriData[i].x, exp.oriData[i].y); //使用正则表达式
+        sscanf(text, "%lf %lf\n", &dataManager->oriData[i].x, &dataManager->oriData[i].y);
+        //RegExp(str, dataManager->oriData[i].x, dataManager->oriData[i].y); //使用正则表达式
     }
 
     file.close();
@@ -122,6 +129,39 @@ bool Test::WriteData(QString name, int num, Data* data) {
     return false;
 }
 
+bool Test::WriteData(QString name, PeakNode* Peaks, int* TestData, int PeaksThreshold) {
+    QString filename = GenerateFileName(name);
+
+    QFile file(filename);
+
+    PeakNode* p = Peaks;
+
+    if (file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        QTextStream stream(&file);
+        stream.seek(file.size());
+
+        while (p != NULL) {
+            if (abs(TestData[p->indPeak] - TestData[p->indStart]) >= PeaksThreshold) //设置阈值，过滤掉小峰RoundRatio*80/100
+            {
+                QString str = QString("%1 %2").arg(dataManager->oriData[p->indStart].x, 0, 'f', 3).arg(dataManager->oriData[p->indStart].y, 0, 'f', 3);
+                stream << str << endl;
+                str = QString("%1 %2").arg(dataManager->oriData[p->indPeak].x, 0, 'f', 3).arg(dataManager->oriData[p->indPeak].y, 0, 'f', 3);
+                stream << str << endl;
+                str = QString("%1 %2").arg(dataManager->oriData[p->indEnd].x, 0, 'f', 3).arg(dataManager->oriData[p->indEnd].y, 0, 'f', 3);
+                stream << str << endl;
+            }
+            p = p->next;
+        }
+
+        p = NULL;
+
+        file.close();
+
+        return true;
+    }
+    return false;
+}
+
 void Test::SaveFile() {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), "", tr("Curve TagName Files (*.TXT)"));
     if (!fileName.isEmpty())
@@ -144,22 +184,51 @@ void Test::SaveFile() {
 }
 
 void Test::ShowPlotWindow() {
+    QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
+    int x = globalPos.x();//x坐标
+    int y = globalPos.y() + ui.MENU->height() + 40;//y坐标
+
+    if (ui.actionSideBar->isChecked()) {
+        plot->setGeometry(this->width() / 4 + x, y, this->width() * 3 / 4, this->height() - ui.MENU->height() - 40);
+    }
+    else {
+        plot->setGeometry(x, y, this->width(), this->height() - ui.MENU->height() - 40);
+    }
     plot->show();
 }
 
 void Test::ShowSideBar() {
     if (ui.actionSideBar->isChecked()) {
         sidebar->show();
-        this->resize(this->size() - QSize(1, 1));
-        this->resize(this->size() + QSize(1, 1));
     }
     else {
         sidebar->hide();
     }
+    this->resize(this->size() - QSize(1, 1));
+    this->resize(this->size() + QSize(1, 1));
 }
 
 void Test::resizeEvent(QResizeEvent* event) {
-    if (nullptr != sidebar && !sidebar->isHidden()) {
+    QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
+    int x = globalPos.x();//x坐标
+    int y = globalPos.y() + ui.MENU->height() + 40;//y坐标
+    if (nullptr != sidebar && ui.actionSideBar->isChecked()) {
         sidebar->resize(ui.centralWidget->width() / 4, ui.centralWidget->height());
+        plot->setGeometry(this->width() / 4 + x, y, this->width() * 3 / 4, this->height() - ui.MENU->height() - 40);
     }
+    else{
+        plot->setGeometry(x, y, this->width(), this->height() - ui.MENU->height() - 40);
+    }
+}
+
+void Test::OnCalculation() {
+    Calculation* calc = new Calculation();
+
+    delete calc;
+}
+
+void Test::OnPeakFinding() {
+    PeakFinding* peakFinding = new PeakFinding();
+
+    delete peakFinding;
 }

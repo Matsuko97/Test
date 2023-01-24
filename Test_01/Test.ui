@@ -89,8 +89,9 @@
     <property name="title">
      <string>Calculation</string>
     </property>
+    <addaction name="actionMethod"/>
    </widget>
-   <widget class="QMenu" name="menu_Window">
+   <widget class="QMenu" name="Window">
     <property name="title">
      <string>Window</string>
     </property>
@@ -107,7 +108,7 @@
    <addaction name="Option"/>
    <addaction name="Analysis"/>
    <addaction name="Calculation"/>
-   <addaction name="menu_Window"/>
+   <addaction name="Window"/>
    <addaction name="Help"/>
   </widget>
   <action name="actionOpen">
@@ -189,6 +190,11 @@
    </property>
    <property name="text">
     <string>SideBar</string>
+   </property>
+  </action>
+  <action name="actionMethod">
+   <property name="text">
+    <string>Method</string>
    </property>
   </action>
  </widget>
