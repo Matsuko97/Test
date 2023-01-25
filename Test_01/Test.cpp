@@ -230,5 +230,8 @@ void Test::OnCalculation() {
 void Test::OnPeakFinding() {
     PeakFinding* peakFinding = new PeakFinding();
 
+    QAction* action = dynamic_cast<QAction*>(sender());
+
+
     delete peakFinding;
 }

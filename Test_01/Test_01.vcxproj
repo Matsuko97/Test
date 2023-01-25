@@ -32,7 +32,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'" Label="QtSettings">
     <QtInstall>msvc2019</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;widgets;printsupport</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'" Label="QtSettings">
@@ -58,6 +58,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'">
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories);$(Qt_INCLUDEPATH_)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'" Label="Configuration">
     <ClCompile>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -91,6 +96,7 @@
     <ClCompile Include="Calculation.cpp" />
     <ClCompile Include="PeakFindingAlgorithm.cpp" />
     <ClCompile Include="PlotWindow.cpp" />
+    <ClCompile Include="qcustomplot.cpp" />
     <ClCompile Include="SideBar.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="main.cpp" />
@@ -99,6 +105,7 @@
     <ClInclude Include="Calculation.h" />
     <ClInclude Include="Include.h" />
     <ClInclude Include="PeakFindingAlgorithm.h" />
+    <QtMoc Include="qcustomplot.h" />
     <QtMoc Include="SideBar.h" />
     <QtMoc Include="PlotWindow.h" />
   </ItemGroup>

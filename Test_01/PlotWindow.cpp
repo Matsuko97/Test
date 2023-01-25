@@ -6,6 +6,7 @@ PlotWindow::PlotWindow(QWidget* parent):QWidget(parent)
 	setAttribute(Qt::WA_QuitOnClose, false);//父窗口关闭子窗口也关闭
     setWindowFlags(Qt::Tool | Qt::NoDropShadowWindowHint | 
         Qt::WindowStaysOnTopHint);
+
 }
 
 PlotWindow::~PlotWindow() {
@@ -21,11 +22,5 @@ void PlotWindow::paintEvent(QPaintEvent* event) {
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.fillPath(path, QBrush(Qt::white));
 
-    QColor color(0, 0, 0, 50);
-    for (int i = 0; i < 10; i++)
-    {
-        color.setAlpha(150 - sqrt(i) * 50);
-        painter.setPen(color);
-        painter.drawPath(path);
-    }
+    return;
 }
