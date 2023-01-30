@@ -6,10 +6,17 @@
 #include "PeakFindingAlgorithm.h"
 #include "PlotWindow.h"
 #include "SideBar.h"
+#include "DataReductionParam.h"
+#include "Instrument.h"
+#include "SerialPort.h"
+#include "AdsorbateParameters.h"
 
 class Test : public QMainWindow
 {
     Q_OBJECT
+
+signals:
+    void plotWindowResize();
 
 public:
     Test(QWidget *parent = nullptr);
@@ -25,14 +32,19 @@ private slots:
     void FileOpen();
     void SaveFile();
     void ShowPlotWindow();
+    void OnPlotWindowResize();
     void ShowSideBar();
     void OnPeakFinding();
     void OnCalculation();
+    void OnCloseAll();
 
 public:
-    PlotWindow* plot;
-    SideBar* sidebar;
     DataManager* dataManager;
+    Instrument* instrument;
+    DataReductionParam* dataParams;
+    AdsorbateParameters* adsorbate;
+    SerialPort* serialPort;
+    SideBar* sidebar;
 
 protected:
     virtual void resizeEvent(QResizeEvent* event) override;

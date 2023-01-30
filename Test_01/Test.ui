@@ -37,12 +37,18 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string/>
+     <widget class="QMdiArea" name="mdiArea">
+      <property name="frameShape">
+       <enum>QFrame::WinPanel</enum>
       </property>
-      <property name="textFormat">
-       <enum>Qt::AutoText</enum>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <property name="lineWidth">
+       <number>1</number>
+      </property>
+      <property name="midLineWidth">
+       <number>0</number>
       </property>
      </widget>
     </item>
@@ -71,18 +77,48 @@
     <property name="title">
      <string>Option</string>
     </property>
-    <addaction name="actionConfiguration"/>
+    <widget class="QMenu" name="menuManage_Materials">
+     <property name="title">
+      <string>Manage Materials</string>
+     </property>
+     <addaction name="actionAdsorbates"/>
+     <addaction name="actionAdsorbents"/>
+    </widget>
     <addaction name="actionInstrument"/>
-    <addaction name="actionDefault_Method"/>
-    <addaction name="actionUnits"/>
+    <addaction name="actionDataParam"/>
+    <addaction name="actionConfiguration_2"/>
+    <addaction name="menuManage_Materials"/>
    </widget>
    <widget class="QMenu" name="Analysis">
     <property name="title">
      <string>Analysis</string>
     </property>
-    <addaction name="actionFilterring_Algorithm"/>
-    <addaction name="actionPeak_Finding_Algorithm"/>
-    <addaction name="actionBaseline"/>
+    <widget class="QMenu" name="menuBaseline">
+     <property name="title">
+      <string>Baseline</string>
+     </property>
+     <addaction name="actionStraight_Line"/>
+     <addaction name="actionSNIP"/>
+    </widget>
+    <widget class="QMenu" name="menuFiltering_Algorithm">
+     <property name="title">
+      <string>Filtering Algorithm</string>
+     </property>
+     <addaction name="actionAverage_Filtering"/>
+     <addaction name="actionDebounce_Filtering"/>
+     <addaction name="actionLimited_Amplitude_Filtering"/>
+     <addaction name="actionRecursive_Median_Filtering"/>
+    </widget>
+    <widget class="QMenu" name="menuPeak_Finding_Algorithm">
+     <property name="title">
+      <string>Peak-Finding Algorithm</string>
+     </property>
+     <addaction name="actionSymmetric_Zero_Area_Algorithm"/>
+     <addaction name="actionTrend_Accumulation"/>
+    </widget>
+    <addaction name="menuFiltering_Algorithm"/>
+    <addaction name="menuPeak_Finding_Algorithm"/>
+    <addaction name="menuBaseline"/>
     <addaction name="actionIntegration"/>
    </widget>
    <widget class="QMenu" name="Calculation">
@@ -98,6 +134,9 @@
     <addaction name="actionSerial_Port"/>
     <addaction name="actionPlot"/>
     <addaction name="actionSideBar"/>
+    <addaction name="actionWork_Log"/>
+    <addaction name="separator"/>
+    <addaction name="actionClose_All"/>
    </widget>
    <widget class="QMenu" name="Help">
     <property name="title">
@@ -111,6 +150,7 @@
    <addaction name="Window"/>
    <addaction name="Help"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
@@ -131,21 +171,6 @@
     <string>Instrument</string>
    </property>
   </action>
-  <action name="actionFilterring_Algorithm">
-   <property name="text">
-    <string>Filtering Algorithm</string>
-   </property>
-  </action>
-  <action name="actionPeak_Finding_Algorithm">
-   <property name="text">
-    <string>Peak-Finding Algorithm</string>
-   </property>
-  </action>
-  <action name="actionBaseline">
-   <property name="text">
-    <string>Baseline</string>
-   </property>
-  </action>
   <action name="actionIntegration">
    <property name="text">
     <string>Integration</string>
@@ -156,9 +181,9 @@
     <string>Default Method</string>
    </property>
   </action>
-  <action name="actionUnits">
+  <action name="actionDataParam">
    <property name="text">
-    <string>Units</string>
+    <string>Data Reduction Parameters</string>
    </property>
   </action>
   <action name="actionSave">
@@ -195,6 +220,71 @@
   <action name="actionMethod">
    <property name="text">
     <string>Method</string>
+   </property>
+  </action>
+  <action name="actionClose_All">
+   <property name="text">
+    <string>Close All</string>
+   </property>
+  </action>
+  <action name="actionConfiguration_2">
+   <property name="text">
+    <string>Configuration</string>
+   </property>
+  </action>
+  <action name="actionAdsorbates">
+   <property name="text">
+    <string>Adsorbates</string>
+   </property>
+  </action>
+  <action name="actionAdsorbents">
+   <property name="text">
+    <string>Adsorbents</string>
+   </property>
+  </action>
+  <action name="actionStraight_Line">
+   <property name="text">
+    <string>Straight Line</string>
+   </property>
+  </action>
+  <action name="actionSNIP">
+   <property name="text">
+    <string>SNIP</string>
+   </property>
+  </action>
+  <action name="actionLimited_Amplitude_Filtering">
+   <property name="text">
+    <string>Limited Amplitude Filtering</string>
+   </property>
+  </action>
+  <action name="actionDebounce_Filtering">
+   <property name="text">
+    <string>Debounce Filtering</string>
+   </property>
+  </action>
+  <action name="actionAverage_Filtering">
+   <property name="text">
+    <string>Average Filtering</string>
+   </property>
+  </action>
+  <action name="actionRecursive_Median_Filtering">
+   <property name="text">
+    <string>Recursive Median Filtering</string>
+   </property>
+  </action>
+  <action name="actionTrend_Accumulation">
+   <property name="text">
+    <string>Trend Accumulation</string>
+   </property>
+  </action>
+  <action name="actionSymmetric_Zero_Area_Algorithm">
+   <property name="text">
+    <string>Symmetric Zero Area Algorithm</string>
+   </property>
+  </action>
+  <action name="actionWork_Log">
+   <property name="text">
+    <string>Work Log</string>
    </property>
   </action>
  </widget>

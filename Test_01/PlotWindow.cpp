@@ -4,6 +4,7 @@ PlotWindow::PlotWindow(QWidget* parent):QWidget(parent)
 {
 	ui.setupUi(this);
 	setAttribute(Qt::WA_QuitOnClose, false);//父窗口关闭子窗口也关闭
+    setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(Qt::Tool | Qt::NoDropShadowWindowHint | 
         Qt::WindowStaysOnTopHint);
 

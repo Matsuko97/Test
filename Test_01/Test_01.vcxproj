@@ -89,21 +89,33 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtRcc Include="Test.qrc" />
+    <QtUic Include="AdsorbateParameters.ui" />
+    <QtUic Include="DataReductionParam.ui" />
+    <QtUic Include="Instrument.ui" />
     <QtUic Include="PlotWindow.ui" />
+    <QtUic Include="SerialPort.ui" />
     <QtUic Include="SideBar.ui" />
     <QtUic Include="Test.ui" />
     <QtMoc Include="Test.h" />
+    <ClCompile Include="AdsorbateParameters.cpp" />
     <ClCompile Include="Calculation.cpp" />
+    <ClCompile Include="DataReductionParam.cpp" />
+    <ClCompile Include="Instrument.cpp" />
     <ClCompile Include="PeakFindingAlgorithm.cpp" />
     <ClCompile Include="PlotWindow.cpp" />
     <ClCompile Include="qcustomplot.cpp" />
+    <ClCompile Include="SerialPort.cpp" />
     <ClCompile Include="SideBar.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="AdsorbateParameters.h" />
     <ClInclude Include="Calculation.h" />
+    <QtMoc Include="SerialPort.h" />
+    <QtMoc Include="DataReductionParam.h" />
     <ClInclude Include="Include.h" />
+    <QtMoc Include="Instrument.h" />
     <ClInclude Include="PeakFindingAlgorithm.h" />
     <QtMoc Include="qcustomplot.h" />
     <QtMoc Include="SideBar.h" />

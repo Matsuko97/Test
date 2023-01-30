@@ -4,42 +4,66 @@ Test::Test(QWidget *parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
+    ui.mdiArea->setViewMode(QMdiArea::SubWindowView);
 
     dataManager = new DataManager();
-    plot = new PlotWindow();
-    connect(ui.actionPlot, SIGNAL(triggered()), this, SLOT(ShowPlotWindow()));
-
+    instrument = new Instrument();
+    dataParams = new DataReductionParam();
+    adsorbate = new AdsorbateParameters();
+    serialPort = new SerialPort();
     sidebar = new SideBar();
-    connect(ui.actionSideBar, SIGNAL(triggered()), this, SLOT(ShowSideBar()));
     sidebar->setParent(this);
+
+    connect(ui.actionInstrument, &QAction::triggered, [=](bool trigger) {
+        instrument->show();
+        });
+
+    connect(ui.actionDataParam, &QAction::triggered, [=](bool trigger) {
+        dataParams->show();
+        });
+
+    connect(ui.actionAdsorbates, &QAction::triggered, [=](bool trigger) {
+        adsorbate->show();
+        });
+
+    connect(ui.actionMethod, SIGNAL(triggered()), this, SLOT(OnCalculation()));
+    connect(ui.menuPeak_Finding_Algorithm, SIGNAL(triggered()), this, SLOT(OnPeakFinding()));
+
+    connect(ui.actionSerial_Port, &QAction::triggered, [=](bool trigger) {
+        serialPort->show();
+        });
+
+    connect(ui.actionPlot, SIGNAL(triggered()), this, SLOT(ShowPlotWindow()));
+    connect(this, SIGNAL(plotWindowResize()), this, SLOT(OnPlotWindowResize()));
+
+    connect(ui.actionSideBar, SIGNAL(triggered()), this, SLOT(ShowSideBar()));
     if (ui.actionSideBar->isChecked()) {
-        //ui.verticalLayout->addWidget(sidebar);
         QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
         int x = globalPos.x();//x坐标
         int y = globalPos.y() + ui.MENU->height();//y坐标
-        sidebar->resize(this->width()/4, this->height());
-        sidebar->move(x, y);//窗口移动
+        sidebar->setGeometry(x+2, y+2, ui.centralWidget->width() / 6, ui.centralWidget->height() - 4);
         sidebar->show();
     }
 
-    dataManager = new DataManager();
-    
-    connect(ui.actionMethod, SIGNAL(triggered()), this, SLOT(OnCalculation()));
-    connect(ui.actionPeak_Finding_Algorithm, SIGNAL(triggered()), this, SLOT(OnCalculation()));
-    
+    connect(ui.actionClose_All, SIGNAL(triggered()), this, SLOT(OnCloseAll()));
+
     showMaximized();
 }
 
 Test::~Test()
 {
-    if (plot)
-        delete plot;
+    ui.mdiArea->closeAllSubWindows();
 
-    if (sidebar)
-        delete sidebar;
+    //dataManager = new DataManager();
+    //instrument = new Instrument();
+    //dataParams = new DataReductionParam();
+    //sidebar = new SideBar();
 
-    if (dataManager)
-        delete dataManager;
+    delete dataManager;
+    delete instrument;
+    delete dataParams;
+    delete serialPort;
+    delete sidebar;
 }
 
 void Test::FileOpen() {
@@ -184,15 +208,16 @@ void Test::SaveFile() {
 }
 
 void Test::ShowPlotWindow() {
-    QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
-    int x = globalPos.x();//x坐标
-    int y = globalPos.y() + ui.MENU->height() + 40;//y坐标
+    PlotWindow* plot = new PlotWindow();
+    QMdiSubWindow* s = nullptr;
+
+    s = ui.mdiArea->addSubWindow(plot);
 
     if (ui.actionSideBar->isChecked()) {
-        plot->setGeometry(this->width() / 4 + x, y, this->width() * 3 / 4, this->height() - ui.MENU->height() - 40);
+        s->setGeometry(this->width() / 6, 0, this->width() * 5 / 6 - 5, this->height() - ui.MENU->height() - 30);
     }
     else {
-        plot->setGeometry(x, y, this->width(), this->height() - ui.MENU->height() - 40);
+        s->setGeometry(0, 0, this->width()-5, this->height() - ui.MENU->height() - 30);
     }
     plot->show();
 }
@@ -209,15 +234,32 @@ void Test::ShowSideBar() {
 }
 
 void Test::resizeEvent(QResizeEvent* event) {
-    QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
-    int x = globalPos.x();//x坐标
-    int y = globalPos.y() + ui.MENU->height() + 40;//y坐标
+    if (ui.mdiArea->subWindowList().count() > 0){
+        emit plotWindowResize();
+    }
+
     if (nullptr != sidebar && ui.actionSideBar->isChecked()) {
-        sidebar->resize(ui.centralWidget->width() / 4, ui.centralWidget->height());
-        plot->setGeometry(this->width() / 4 + x, y, this->width() * 3 / 4, this->height() - ui.MENU->height() - 40);
+        sidebar->resize(ui.centralWidget->width() / 6, ui.centralWidget->height()-4);
     }
     else{
-        plot->setGeometry(x, y, this->width(), this->height() - ui.MENU->height() - 40);
+    }
+}
+
+void Test::OnPlotWindowResize() {
+    QMdiSubWindow* s = ui.mdiArea->activeSubWindow();
+    if (ui.actionSideBar->isChecked()) {
+        s->setGeometry(ui.centralWidget->width() / 6, 0, ui.centralWidget->width() * 5 / 6 - 5, ui.centralWidget->height() - 4);
+    }
+    else {
+        s->setGeometry(0, 0, ui.centralWidget->width() - 5, ui.centralWidget->height() - 4);
+    }
+}
+
+void Test::OnCloseAll() {
+    ui.mdiArea->closeAllSubWindows();
+    if (ui.actionSideBar->isChecked()) {
+        sidebar->hide();
+        ui.actionSideBar->setChecked(false);
     }
 }
 

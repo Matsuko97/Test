@@ -14,3 +14,6 @@
 #include "PeakFindingAlgorithm.h"
 #include "PlotWindow.h"
 #include "SideBar.h"
+#include "Instrument.h"
+#include "DataReductionParam.h"
+#include "SerialPort.h"

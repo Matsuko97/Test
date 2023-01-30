@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AdsorbateParameters</class>
+ <widget class="QDialog" name="AdsorbateParameters">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>429</width>
+    <height>327</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Adsorbate Parameters</string>
+  </property>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>290</y>
+     <width>381</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout">
+    <property name="spacing">
+     <number>6</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QPushButton" name="buttonNew">
+      <property name="text">
+       <string>New</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="buttonDelete">
+      <property name="text">
+       <string>Delete</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>411</width>
+     <height>241</height>
+    </rect>
+   </property>
+   <property name="tabShape">
+    <enum>QTabWidget::Rounded</enum>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Basic</string>
+    </attribute>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="2" rowspan="2">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>K</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QTextEdit" name="textEdit">
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Molecular weight:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QTextEdit" name="textEdit_2">
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>g/mol</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Cross-sectional area:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QTextEdit" name="textEdit_3">
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>A2/molec.</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Liquid density:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QTextEdit" name="textEdit_4">
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>g/ml</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>Non-ideality factor:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QTextEdit" name="textEdit_5">
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="2">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>1/torr</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Adsorbate temperature:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string/>
+    </attribute>
+   </widget>
+  </widget>
+  <widget class="QSplitter" name="splitter">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>401</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <widget class="QLabel" name="label">
+    <property name="text">
+     <string>Name:</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboBox">
+    <item>
+     <property name="text">
+      <string>Nitrogen</string>
+     </property>
+    </item>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonNew</sender>
+   <signal>clicked()</signal>
+   <receiver>AdsorbateParameters</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>278</x>
+     <y>253</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>96</x>
+     <y>254</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonDelete</sender>
+   <signal>clicked()</signal>
+   <receiver>AdsorbateParameters</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>369</x>
+     <y>253</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>179</x>
+     <y>282</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
