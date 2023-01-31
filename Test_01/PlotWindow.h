@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_PlotWindow.h"
+#include "Calculation.h"
 
 class PlotWindow:public QWidget
 {
@@ -13,6 +14,9 @@ public:
 	
 protected:
 	void paintEvent(QPaintEvent* event) override;
+
+public:
+	void drawPlot(Data* data, int n);
 	 
 private:
 	Ui::PlotWindow ui;

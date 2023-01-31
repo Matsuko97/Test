@@ -17,6 +17,7 @@ class Test : public QMainWindow
 
 signals:
     void plotWindowResize();
+    void dataReady(Data* data, int n);
 
 public:
     Test(QWidget *parent = nullptr);
@@ -37,6 +38,7 @@ private slots:
     void OnPeakFinding();
     void OnCalculation();
     void OnCloseAll();
+    void DrawPlot(Data* data, int n);
 
 public:
     DataManager* dataManager;
@@ -45,6 +47,8 @@ public:
     AdsorbateParameters* adsorbate;
     SerialPort* serialPort;
     SideBar* sidebar;
+
+    int subWindowCount;
 
 protected:
     virtual void resizeEvent(QResizeEvent* event) override;

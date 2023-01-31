@@ -1,7 +1,8 @@
 #include "Include.h"
 
 Test::Test(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent),
+    subWindowCount(0)
 {
     ui.setupUi(this);
     ui.mdiArea->setViewMode(QMdiArea::SubWindowView);
@@ -13,6 +14,8 @@ Test::Test(QWidget *parent)
     serialPort = new SerialPort();
     sidebar = new SideBar();
     sidebar->setParent(this);
+
+    connect(this, &Test::dataReady, this, &Test::DrawPlot);
 
     connect(ui.actionInstrument, &QAction::triggered, [=](bool trigger) {
         instrument->show();
@@ -106,6 +109,10 @@ bool Test::ReadData(QString filename) {
     }
 
     file.close();
+
+    if (ui.mdiArea->subWindowList().count() > 0)
+        emit dataReady(dataManager->oriData, dataManager->NumberOfData);
+
     return true;
 }
 
@@ -208,6 +215,15 @@ void Test::SaveFile() {
 }
 
 void Test::ShowPlotWindow() {
+    int n = ui.mdiArea->subWindowList().count();
+    if (n >= 10)
+        return;
+
+    subWindowCount = n + 1;
+
+    if (n > 1) {
+    }
+
     PlotWindow* plot = new PlotWindow();
     QMdiSubWindow* s = nullptr;
 
@@ -277,3 +293,12 @@ void Test::OnPeakFinding() {
 
     delete peakFinding;
 }
+
+void Test::DrawPlot(Data* data, int n) {
+    PlotWindow* p;
+    if (ui.mdiArea->subWindowList().count() > 0) {
+        p = (PlotWindow*)ui.mdiArea->currentSubWindow()->widget();
+        p->drawPlot(data, n);
+    }
+}
+

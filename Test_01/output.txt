@@ -1,0 +1,6 @@
+Microsoft (R) COFF/PE Dumper Version 14.29.30142.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file Test_01.exe
+LINK : fatal error LNK1181: 无法打开输入文件“Test_01.exe”
