@@ -111,7 +111,7 @@ bool Test::ReadData(QString filename) {
     file.close();
 
     if (ui.mdiArea->subWindowList().count() > 0)
-        emit dataReady(dataManager->oriData, dataManager->NumberOfData);
+        emit dataReady(dataManager->oriData, dataManager->NumberOfData, "origin data");
 
     return true;
 }
@@ -294,11 +294,11 @@ void Test::OnPeakFinding() {
     delete peakFinding;
 }
 
-void Test::DrawPlot(Data* data, int n) {
+void Test::DrawPlot(Data* data, int n, QString s) {
     PlotWindow* p;
     if (ui.mdiArea->subWindowList().count() > 0) {
         p = (PlotWindow*)ui.mdiArea->currentSubWindow()->widget();
-        p->drawPlot(data, n);
+        p->drawPlot(data, n, s);
     }
 }
 

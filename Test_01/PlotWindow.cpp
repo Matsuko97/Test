@@ -26,7 +26,7 @@ void PlotWindow::paintEvent(QPaintEvent* event) {
     return;
 }
 
-void PlotWindow::drawPlot(Data* data, int n) {
+void PlotWindow::drawPlot(Data* data, int n, QString s) {
     QVector<double> x(n), y(n);
     double xMin = data[0].x, xMax = data[0].x, yMin = data[0].y, yMax = data[0].y;
     for (int i = 0; i < n; ++i) {
@@ -46,7 +46,8 @@ void PlotWindow::drawPlot(Data* data, int n) {
 
     ui.customPlot->addGraph();
     ui.customPlot->graph(0)->setData(x, y);
-    ui.customPlot->graph(0)->setName("origin data");
+    ui.customPlot->graph(0)->setName(s);
+    //ui.customPlot->graph(0)->setName("origin data");
 
     ui.customPlot->xAxis->setLabel("x");
     ui.customPlot->yAxis->setLabel("y");

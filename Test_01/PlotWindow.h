@@ -16,7 +16,7 @@ protected:
 	void paintEvent(QPaintEvent* event) override;
 
 public:
-	void drawPlot(Data* data, int n);
+	void drawPlot(Data* data, int n, QString s);
 	 
 private:
 	Ui::PlotWindow ui;
