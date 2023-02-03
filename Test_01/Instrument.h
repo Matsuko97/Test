@@ -11,6 +11,9 @@ public:
 	Instrument(QDialog* parent = nullptr);
 	~Instrument();
 
+protected:
+	virtual void paintEvent(QPaintEvent* e) override;
+
 private:
 	Ui::Instrument ui;
 };
