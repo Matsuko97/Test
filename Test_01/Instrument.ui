@@ -243,7 +243,7 @@ p, li { white-space: pre-wrap; }
     </rect>
    </property>
    <property name="text">
-    <string>OK</string>
+    <string>Start</string>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_3">
@@ -286,7 +286,7 @@ p, li { white-space: pre-wrap; }
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QRadioButton" name="radioButton_3">
+     <widget class="QRadioButton" name="Vm">
       <property name="text">
        <string>Vm Determination</string>
       </property>
@@ -296,21 +296,21 @@ p, li { white-space: pre-wrap; }
      </widget>
     </item>
     <item>
-     <widget class="QRadioButton" name="radioButton_4">
+     <widget class="QRadioButton" name="FlowMeasurement">
       <property name="text">
        <string>Flow Measurement</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QRadioButton" name="radioButton_5">
+     <widget class="QRadioButton" name="TotalFlowMeasurement">
       <property name="text">
        <string>Total Flow Measurement</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QRadioButton" name="radioButton_6">
+     <widget class="QRadioButton" name="Calibration">
       <property name="text">
        <string>Calibration</string>
       </property>

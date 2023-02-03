@@ -57,16 +57,16 @@ Test::~Test()
 {
     ui.mdiArea->closeAllSubWindows();
 
-    //dataManager = new DataManager();
-    //instrument = new Instrument();
-    //dataParams = new DataReductionParam();
-    //sidebar = new SideBar();
-
     delete dataManager;
+    dataManager = nullptr;
     delete instrument;
+    instrument = nullptr;
     delete dataParams;
+    dataParams = nullptr;
     delete serialPort;
+    serialPort = nullptr;
     delete sidebar;
+    sidebar = nullptr;
 }
 
 void Test::FileOpen() {
