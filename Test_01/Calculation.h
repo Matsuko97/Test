@@ -30,6 +30,8 @@ public:
     Data* oriData;
     QString filename;
     int NumberOfData;
+    int E;
+    double Factor;
 
 public:
     DataManager() {
@@ -39,10 +41,34 @@ public:
 
     ~DataManager() {
         free(oriData);
+        oriData = nullptr;
     }
 
     Data* GetOriData() {
         return oriData;
+    }
+
+    void CalcExponent(double num) {
+        int n = 0;
+        if (num < 1)
+        {
+            while (num < 1)
+            {
+                num *= 10;
+                n--;
+            }
+        }
+        else
+        {
+            while (num > 10)
+            {
+                num /= 10;
+                n++;
+            }
+        }
+        
+        E = n - 1;
+        Factor = E ? pow(10, E) : 1;
     }
 };
 

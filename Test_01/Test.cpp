@@ -30,7 +30,22 @@ Test::Test(QWidget *parent)
         });
 
     connect(ui.actionMethod, SIGNAL(triggered()), this, SLOT(OnCalculation()));
-    connect(ui.menuPeak_Finding_Algorithm, SIGNAL(triggered()), this, SLOT(OnPeakFinding()));
+
+    QSignalMapper* signalMapper = new QSignalMapper(this);
+    connect(ui.actionAverage_Filtering, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    signalMapper->setMapping(ui.actionAverage_Filtering, 1);
+    connect(ui.actionDebounce_Filtering, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    signalMapper->setMapping(ui.actionDebounce_Filtering, 2);
+    connect(ui.actionLimited_Amplitude_Filtering, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    signalMapper->setMapping(ui.actionLimited_Amplitude_Filtering, 3);
+    connect(ui.actionRecursive_Median_Filtering, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    signalMapper->setMapping(ui.actionRecursive_Median_Filtering, 4);
+    connect(ui.actionSavizkg_Golag_Smooth, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    signalMapper->setMapping(ui.actionSavizkg_Golag_Smooth, 5);
+    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(OnFiltering(int)));
+
+    connect(ui.actionSymmetric_Zero_Area_Algorithm, SIGNAL(triggered()), this, SLOT(OnPeakFinding()));
+    connect(ui.actionTrend_Accumulation, SIGNAL(triggered()), this, SLOT(OnPeakFinding()));
 
     connect(ui.actionSerial_Port, &QAction::triggered, [=](bool trigger) {
         serialPort->show();
@@ -72,7 +87,9 @@ Test::~Test()
 void Test::FileOpen() {
     QString curPath = QDir::currentPath();//获取系统当前目录
     QString filter = QString::fromLocal8Bit("文本文件(*.txt);;所有文件(*.*)"); //文件过滤器
-    dataManager->filename = QFileDialog::getOpenFileName(this, tr("Open"), curPath, filter);
+
+    QDir dir = QDir::current();
+    dataManager->filename = dir.relativeFilePath(QFileDialog::getOpenFileName(this, tr("Open"), curPath, filter));
 
     if (!ReadData(dataManager->filename)) {
         QString dlgTitle = "Error";
@@ -107,6 +124,11 @@ bool Test::ReadData(QString filename) {
         sscanf(text, "%lf %lf\n", &dataManager->oriData[i].x, &dataManager->oriData[i].y);
         //RegExp(str, dataManager->oriData[i].x, dataManager->oriData[i].y); //使用正则表达式
     }
+    dataManager->CalcExponent(dataManager->oriData[0].y);
+
+    if (dataManager->oriData) {
+        QMessageBox::about(this, tr("Success"), QString::fromLocal8Bit("数据读取成功"));
+    }
 
     file.close();
 
@@ -130,20 +152,18 @@ void Test::RegExp(QString& str, double& data1, double& data2) {
     }
 }
 
-QString Test::GenerateFileName(QString filename) {
+QString Test::GenerateFileName(QString filename, QString type) {
     int length = filename.size();
     QString file = filename.mid(0, length - 4);
     QDateTime current_date_time = QDateTime::currentDateTime();
     QString current_date = current_date_time.toString("_yyyy_MM_dd_hh")+ QString::fromLocal8Bit("时") +
         current_date_time.toString("mm") + QString::fromLocal8Bit("分") + 
         current_date_time.toString("ss") + QString::fromLocal8Bit("秒");
-    QString newFilename = file + current_date + ".txt";
+    QString newFilename = file + "_" + type + current_date + ".txt";
     return newFilename;
 }
 
-bool Test::WriteData(QString name, int num, Data* data) {
-    QString filename = GenerateFileName(name);
-
+bool Test::WriteData(QString filename, int num, Data* data) {
     QFile file(filename);
     if (file.open(QIODevice::ReadWrite | QIODevice::Text)) {
         QTextStream stream(&file);
@@ -151,7 +171,6 @@ bool Test::WriteData(QString name, int num, Data* data) {
 
         for (int i = 0; i < num; ++i) {
             QString str = QString("%1 %2").arg(data[i].x, 0, 'f', 3).arg(data[i].y, 0, 'f', 3);
-            //str.asprintf("%.3lf  %.3lf\n", data[i].x, data[i].y);
             stream << str << endl;
         }
         file.close();
@@ -160,9 +179,7 @@ bool Test::WriteData(QString name, int num, Data* data) {
     return false;
 }
 
-bool Test::WriteData(QString name, PeakNode* Peaks, int* TestData, int PeaksThreshold) {
-    QString filename = GenerateFileName(name);
-
+bool Test::WriteData(QString filename, PeakNode* Peaks, int* TestData, int PeaksThreshold) {
     QFile file(filename);
 
     PeakNode* p = Peaks;
@@ -285,11 +302,66 @@ void Test::OnCalculation() {
     delete calc;
 }
 
+void Test::OnFiltering(int i) {
+    if (dataManager->oriData == nullptr) {
+        QMessageBox::critical(this, tr("Error"), QString::fromLocal8Bit("未读取数据"));
+        return;
+    }
+
+    Filtering* filtering = nullptr;
+
+    switch (i) {
+    case 1:
+        break;
+
+    case 2:
+        break;
+
+    case 3:
+        filtering = new Filtering("AmplitudeLimiterFilter");
+        if (filtering->LimitedAmplitudeFiltering(dataManager) == 0) {
+            QString file = GenerateFileName(dataManager->filename, filtering->type);
+            WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
+        }
+        break;
+
+    case 4:
+        break;
+
+    case 5:
+        filtering = new Filtering("S-G_Smooth");
+        filtering->Smooth(dataManager);
+        QString file = GenerateFileName(dataManager->filename, filtering->type);
+        WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
+        break;
+    }
+
+    if (filtering && ui.mdiArea->subWindowList().count() > 0)
+        emit dataReady(filtering->dataManager->oriData, filtering->dataManager->NumberOfData, filtering->type);
+
+    if (filtering)
+        delete filtering;
+
+    filtering = nullptr;
+    return;
+}
+
 void Test::OnPeakFinding() {
-    PeakFinding* peakFinding = new PeakFinding();
+    if (dataManager->oriData == nullptr) {
+        QMessageBox::critical(this, tr("Error"), QString::fromLocal8Bit("未读取数据"));
+        return;
+    }
+
+    PeakFinding* peakFinding = nullptr;
 
     QAction* action = dynamic_cast<QAction*>(sender());
 
+    if (action == ui.actionSymmetric_Zero_Area_Algorithm) {
+
+    }
+    else {
+
+    }
 
     delete peakFinding;
 }

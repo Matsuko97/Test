@@ -12,6 +12,7 @@
 #include "Test.h"
 #include "Calculation.h"
 #include "PeakFindingAlgorithm.h"
+#include "FilteringAlgorithm.h"
 #include "PlotWindow.h"
 #include "SideBar.h"
 #include "Instrument.h"

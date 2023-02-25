@@ -108,6 +108,7 @@
      <addaction name="actionDebounce_Filtering"/>
      <addaction name="actionLimited_Amplitude_Filtering"/>
      <addaction name="actionRecursive_Median_Filtering"/>
+     <addaction name="actionSavizkg_Golag_Smooth"/>
     </widget>
     <widget class="QMenu" name="menuPeak_Finding_Algorithm">
      <property name="title">
@@ -285,6 +286,11 @@
   <action name="actionWork_Log">
    <property name="text">
     <string>Work Log</string>
+   </property>
+  </action>
+  <action name="actionSavizkg_Golag_Smooth">
+   <property name="text">
+    <string>Savizkg-Golag Smooth</string>
    </property>
   </action>
  </widget>

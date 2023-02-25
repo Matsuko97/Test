@@ -1,5 +1,13 @@
 #include "Include.h"
 
+PeakFinding::PeakFinding(QString s) {
+	Peaks = NULL;
+	Rear = NULL;
+	type = s;
+}
+
+PeakFinding::~PeakFinding(){}
+
 void PeakFinding::TrendAccumulation(DataManager* data) {
 	Data* oriData = data->GetOriData();
 	int num = data->NumberOfData;
@@ -218,4 +226,56 @@ void PeakFinding::FreeLink(PeakNode* p)
 		p = q;
 	}
 	p = NULL;
+}
+
+//Peak-Finding Algorithm ******** Symmetric Zero Area
+double PeakFinding::SZA_G(int j) {
+	double result = 0;
+
+	result = exp(-4 * (j * j / H / H) * log(2.0));
+	return result;
+}
+
+double PeakFinding::SZA_C(int j) {
+	//Gaussian
+#if 1
+	double result = 0;
+
+	for (int i = -m; i <= m; ++i)
+	{
+		result += SZA_G(i);
+	}
+
+	result = result / W;
+	result = SZA_G(j) - result;
+	return result;
+#endif
+
+	//Square Wave
+#if 0
+	double result = 0;
+
+	if (j >= ((1 - H) / 2) && j <= ((H - 1) / 2))
+	{
+		result = 2;
+	}
+	else
+	{
+		result = -1;
+	}
+	return result;
+#endif
+}
+
+//double SZA_G(int j);
+//double SZA_C(int j);
+//int SymmetricZero(DataManager* data);
+//void RecordInfo(int start, int end);
+int PeakFinding::SymmetricZeroArea(DataManager* data) {
+
+	return 0;
+}
+
+void PeakFinding::RecordInfo(int start, int end) {
+
 }

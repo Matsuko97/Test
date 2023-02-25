@@ -25,7 +25,7 @@ public:
 
     bool ReadData(QString filename);
     void RegExp(QString& str, double& data1, double& data2);
-    QString GenerateFileName(QString filename);
+    QString GenerateFileName(QString filename, QString type);
     bool WriteData(QString name, int num, Data* data);
     bool WriteData(QString name, PeakNode* Peaks, int* TestData, int PeaksThreshold);
 
@@ -35,6 +35,7 @@ private slots:
     void ShowPlotWindow();
     void OnPlotWindowResize();
     void ShowSideBar();
+    void OnFiltering(int i);
     void OnPeakFinding();
     void OnCalculation();
     void OnCloseAll();
