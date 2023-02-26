@@ -4,8 +4,6 @@
 #include "ui_PlotWindow.h"
 #include "Calculation.h"
 
-
-
 class PlotWindow:public QWidget
 {
 	Q_OBJECT

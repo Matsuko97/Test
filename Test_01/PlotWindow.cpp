@@ -1,5 +1,9 @@
 #include "Include.h"
 
+QColor Pen[10] = { QColor(0,0,0), Qt::darkRed,
+    Qt::darkGreen,
+    Qt::black };
+
 PlotWindow::PlotWindow(QWidget* parent):QWidget(parent)
 {
 	ui.setupUi(this);
@@ -70,7 +74,7 @@ void PlotWindow::drawPlot(Data* data, int n, QString s) {
     }
     else {
         ui.customPlot->addGraph();
-        ui.customPlot->graph(cnt)->setPen(QPen(Qt::darkRed));
+        ui.customPlot->graph(cnt)->setPen(QPen(Pen[cnt]));
         ui.customPlot->graph(cnt)->setData(x, y);
         ui.customPlot->graph(cnt)->setName(s);
         ui.customPlot->graph(cnt)->rescaleAxes(true);
@@ -79,7 +83,8 @@ void PlotWindow::drawPlot(Data* data, int n, QString s) {
     // ÏÔÊ¾Í¼Àý
     ui.customPlot->legend->setVisible(true); 
 
-    ui.customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+    ui.customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+        QCP::iSelectLegend | QCP::iSelectPlottables);
 
     // ÖØ»­Í¼Ïñ
     ui.customPlot->replot();

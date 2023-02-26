@@ -304,7 +304,7 @@ void Test::OnCalculation() {
 
 void Test::OnFiltering(int i) {
     if (dataManager->oriData == nullptr) {
-        QMessageBox::critical(this, tr("Error"), QString::fromLocal8Bit("未读取数据"));
+        QMessageBox::critical(this, tr("Error"), QString::fromLocal8Bit("未读取原始数据"));
         return;
     }
 
@@ -312,20 +312,35 @@ void Test::OnFiltering(int i) {
 
     switch (i) {
     case 1:
+        filtering = new Filtering("Average_Filter");
+        if (filtering->AverageFilter(dataManager) == 0) {
+            QString file = GenerateFileName(dataManager->filename, filtering->type);
+            WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
+        }
         break;
 
     case 2:
+        filtering = new Filtering("Debounce_Filter");
+        if (filtering->DebounceFilter(dataManager) == 0) {
+            QString file = GenerateFileName(dataManager->filename, filtering->type);
+            WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
+        }
         break;
 
     case 3:
-        filtering = new Filtering("AmplitudeLimiterFilter");
-        if (filtering->LimitedAmplitudeFiltering(dataManager) == 0) {
+        filtering = new Filtering("Limitede_Amplitude_Filter");
+        if (filtering->LimitedAmplitudeFilter(dataManager) == 0) {
             QString file = GenerateFileName(dataManager->filename, filtering->type);
             WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
         }
         break;
 
     case 4:
+        filtering = new Filtering("Recursive_Median_Filter");
+        if (filtering->RecursiveMedianFilter(dataManager) == 0) {
+            QString file = GenerateFileName(dataManager->filename, filtering->type);
+            WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
+        }
         break;
 
     case 5:
