@@ -10,7 +10,7 @@ struct Platform{
 	int           indEnd;
 	int           indWidth;
 	struct Platform* next;
-	Platform(int x) : indStart(x), next(nullptr) {}
+	Platform(int x) : indStart(x), indEnd(x), indWidth(0), next(nullptr) {}
 };
 
 class Filtering {

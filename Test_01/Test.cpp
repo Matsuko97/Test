@@ -8,6 +8,7 @@ Test::Test(QWidget *parent)
     ui.mdiArea->setViewMode(QMdiArea::SubWindowView);
 
     dataManager = new DataManager();
+    dataSmooth = nullptr;
     instrument = new Instrument();
     dataParams = new DataReductionParam();
     adsorbate = new AdsorbateParameters();
@@ -46,6 +47,15 @@ Test::Test(QWidget *parent)
 
     connect(ui.actionSymmetric_Zero_Area_Algorithm, SIGNAL(triggered()), this, SLOT(OnPeakFinding()));
     connect(ui.actionTrend_Accumulation, SIGNAL(triggered()), this, SLOT(OnPeakFinding()));
+
+    connect(ui.actionStraight_Line, &QAction::triggered, this, [=](bool trigger) {
+            if (dataManager->fileBase != "" && ui.mdiArea->subWindowList().count() > 0) {
+                int count = 0;
+                Data* data = ReadDataForPlot(dataManager->fileBase, count);
+                emit dataReady(data, count, "Base Line");
+            }
+        });
+    connect(ui.actionSNIP, &QAction::triggered, this, &Test::OnSNIP());
 
     connect(ui.actionSerial_Port, &QAction::triggered, [=](bool trigger) {
         serialPort->show();
@@ -179,37 +189,6 @@ bool Test::WriteData(QString filename, int num, Data* data) {
     return false;
 }
 
-bool Test::WriteData(QString filename, PeakNode* Peaks, int* TestData, int PeaksThreshold) {
-    QFile file(filename);
-
-    PeakNode* p = Peaks;
-
-    if (file.open(QIODevice::ReadWrite | QIODevice::Text)) {
-        QTextStream stream(&file);
-        stream.seek(file.size());
-
-        while (p != NULL) {
-            if (abs(TestData[p->indPeak] - TestData[p->indStart]) >= PeaksThreshold) //设置阈值，过滤掉小峰RoundRatio*80/100
-            {
-                QString str = QString("%1 %2").arg(dataManager->oriData[p->indStart].x, 0, 'f', 3).arg(dataManager->oriData[p->indStart].y, 0, 'f', 3);
-                stream << str << endl;
-                str = QString("%1 %2").arg(dataManager->oriData[p->indPeak].x, 0, 'f', 3).arg(dataManager->oriData[p->indPeak].y, 0, 'f', 3);
-                stream << str << endl;
-                str = QString("%1 %2").arg(dataManager->oriData[p->indEnd].x, 0, 'f', 3).arg(dataManager->oriData[p->indEnd].y, 0, 'f', 3);
-                stream << str << endl;
-            }
-            p = p->next;
-        }
-
-        p = NULL;
-
-        file.close();
-
-        return true;
-    }
-    return false;
-}
-
 void Test::SaveFile() {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), "", tr("Curve TagName Files (*.TXT)"));
     if (!fileName.isEmpty())
@@ -315,6 +294,7 @@ void Test::OnFiltering(int i) {
         filtering = new Filtering("Average_Filter");
         if (filtering->AverageFilter(dataManager) == 0) {
             QString file = GenerateFileName(dataManager->filename, filtering->type);
+            dataManager->fileFilter = file;
             WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
         }
         break;
@@ -323,6 +303,7 @@ void Test::OnFiltering(int i) {
         filtering = new Filtering("Debounce_Filter");
         if (filtering->DebounceFilter(dataManager) == 0) {
             QString file = GenerateFileName(dataManager->filename, filtering->type);
+            dataManager->fileFilter = file;
             WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
         }
         break;
@@ -331,6 +312,7 @@ void Test::OnFiltering(int i) {
         filtering = new Filtering("Limitede_Amplitude_Filter");
         if (filtering->LimitedAmplitudeFilter(dataManager) == 0) {
             QString file = GenerateFileName(dataManager->filename, filtering->type);
+            dataManager->fileFilter = file;
             WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
         }
         break;
@@ -339,6 +321,7 @@ void Test::OnFiltering(int i) {
         filtering = new Filtering("Recursive_Median_Filter");
         if (filtering->RecursiveMedianFilter(dataManager) == 0) {
             QString file = GenerateFileName(dataManager->filename, filtering->type);
+            dataManager->fileFilter = file;
             WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
         }
         break;
@@ -347,6 +330,8 @@ void Test::OnFiltering(int i) {
         filtering = new Filtering("S-G_Smooth");
         filtering->Smooth(dataManager);
         QString file = GenerateFileName(dataManager->filename, filtering->type);
+        dataManager->fileFilter = file;
+        dataSmooth = new DataManager(*filtering->dataManager);
         WriteData(file, filtering->dataManager->NumberOfData, filtering->dataManager->oriData);
         break;
     }
@@ -354,8 +339,9 @@ void Test::OnFiltering(int i) {
     if (filtering && ui.mdiArea->subWindowList().count() > 0)
         emit dataReady(filtering->dataManager->oriData, filtering->dataManager->NumberOfData, filtering->type);
 
-    if (filtering)
+    if (filtering) {
         delete filtering;
+    }
 
     filtering = nullptr;
     return;
@@ -363,22 +349,37 @@ void Test::OnFiltering(int i) {
 
 void Test::OnPeakFinding() {
     if (dataManager->oriData == nullptr) {
-        QMessageBox::critical(this, tr("Error"), QString::fromLocal8Bit("未读取数据"));
+        QMessageBox::critical(this, tr("Error"), QString::fromLocal8Bit("未读取原始数据"));
         return;
     }
 
     PeakFinding* peakFinding = nullptr;
+    DataManager* data = dataSmooth == nullptr ? dataManager : dataSmooth;
 
     QAction* action = dynamic_cast<QAction*>(sender());
 
     if (action == ui.actionSymmetric_Zero_Area_Algorithm) {
-
+        peakFinding = new PeakFinding("Symmetric_Zero_Area");
+        peakFinding->SymmetricZeroArea(data);
     }
     else {
-
+        peakFinding = new PeakFinding("Trend_Accumulation");
+        peakFinding->TrendAccumulation(data);
     }
 
-    delete peakFinding;
+    if (peakFinding && ui.mdiArea->subWindowList().count() > 0){
+        int count = 0;
+        Data* data = ReadDataForPlot(peakFinding->fileName, count);
+        emit dataReady(data, count, peakFinding->type);
+    }
+
+    if (peakFinding) {
+        dataManager->filePeak = peakFinding->fileName;
+        dataManager->fileBase = peakFinding->fileNameBase;
+        delete peakFinding;
+    }
+
+    return;
 }
 
 void Test::DrawPlot(Data* data, int n, QString s) {
@@ -389,3 +390,33 @@ void Test::DrawPlot(Data* data, int n, QString s) {
     }
 }
 
+Data* Test::ReadDataForPlot(QString filename, int& count) {
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
+
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        count++;
+    }
+    Data* data = (Data*)calloc(count, sizeof(Data));
+    file.close();
+
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    for (int i = 0; i < count; i++) {
+        QByteArray line = file.readLine();
+        QString str(line);
+        char* text = NULL;
+        text = line.data();
+        sscanf(text, "%lf %lf\n", &data[i].x, &data[i].y);
+    }
+
+    file.close();
+
+    return data;
+}
+
+void Test::OnSNIP() {
+
+}

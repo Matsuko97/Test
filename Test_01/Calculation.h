@@ -24,19 +24,43 @@ struct LineFitInfo {
     double intercept;
 };
 
-
 class DataManager {
 public:
     Data* oriData;
-    QString filename;
     int NumberOfData;
     int E;
     double Factor;
+    QString filename;
+    QString fileFilter;
+    QString filePeak;
+    QString fileBase;
+    QString fileSNIP;
 
 public:
     DataManager() {
         oriData = nullptr;
         NumberOfData = 0;
+        E = 0;
+        Factor = 1.0;
+        filename = "";
+        fileFilter = "";
+        filePeak = "";
+        fileBase = "";
+        fileSNIP = "";
+    }
+
+    DataManager(const DataManager& d) {
+        NumberOfData = d.NumberOfData;
+        oriData = (Data* )calloc(NumberOfData, sizeof(Data));
+        memcpy(oriData, d.oriData, NumberOfData*sizeof(Data));
+        
+        E = d.E;
+        Factor = d.Factor;
+        filename = d.filename;
+        fileFilter = d.fileFilter;
+        filePeak = d.filePeak;
+        fileBase = d.fileBase;
+        fileSNIP = d.fileSNIP;
     }
 
     ~DataManager() {
@@ -66,7 +90,7 @@ public:
                 n++;
             }
         }
-        
+
         E = n - 1;
         Factor = E ? pow(10, E) : 1;
     }

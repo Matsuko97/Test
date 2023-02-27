@@ -18,9 +18,10 @@ static double f = 0.5;
 //End ******** Symmetric Zero Area
 
 struct PeakNode {
-	int           indPeak;
-	int           indStart;
-	int           indEnd;
+	int indPeak;
+	int indStart;
+	int indEnd;
+	int indWidth;
 	struct PeakNode* next;
 };
 
@@ -29,6 +30,8 @@ public:
 	PeakNode* Peaks;
 	PeakNode* Rear;
 	QString type;
+	QString fileName;
+	QString fileNameBase;
 
 public:
 	PeakFinding(QString s);
@@ -44,5 +47,8 @@ public:
 	double SZA_G(int j);
 	double SZA_C(int j);
 	int SymmetricZeroArea(DataManager* data);
-	void RecordInfo(int start, int end);
+
+	QString GenerateFileName(QString filename, QString type);
+	bool WriteData(QString filename, QString str);
+	bool WriteData(QString filename, PeakNode* Peaks, int* TestData, int PeaksThreshold, DataManager* data);
 };

@@ -197,32 +197,68 @@ int Filtering::RecursiveMedianFilter(DataManager* data) {
 	int count = 1, start = 0;
 	Platform* HeadNode = new Platform(-1);
 	Platform* p = HeadNode, * q = nullptr;
-	for (int n = 1; n < Num; n++) {
-		if (dataManager->oriData[n].y == dataManager->oriData[n - 1].y) {
-			if (count >= 7) {
-				q = new Platform(start);
-			}
-			else {
-				start = start == 0 ? n - 1 : start;
-			}
-			count = start == 0 ? 1 : ++count;
-		}
-		else {
-			if (q) {
-				q->indEnd = n-1;
-				q->indWidth = count;
+	//for (int n = 1; n < Num; n++) {
+	//	if (dataManager->oriData[n].y == dataManager->oriData[n - 1].y) {
+	//		if (count >= 7) {
+	//			q = new Platform(start);
+	//		}
+	//		else {
+	//			start = start == 0 ? n - 1 : start;
+	//		}
+	//		count = start == 0 ? 1 : ++count;
+	//	}
+	//	else {
+	//		if (q) {
+	//			q->indEnd = n-1;
+	//			q->indWidth = count;
+	//			p->next = q;
+	//			p = q;
+	//			q = nullptr;
+
+	//			start = 0;
+	//			count = 1;
+	//		}
+	//	}
+	//}
+	bool flag_rise = false;
+	bool flag_decline = false;
+	int width = 0;
+
+	for (int n = 1; n < Num; n++)
+	{
+		if (dataManager->oriData[n].y - dataManager->oriData[n-1].y > 2){
+			if ((width != 0) && flag_decline && width < RecursiveNum / 2){
+				q = new Platform(n - 1);
+				q->indStart = q->indEnd - width;
+				q->indWidth = width;
 				p->next = q;
 				p = q;
 				q = nullptr;
-
-				start = 0;
-				count = 1;
 			}
+			width = 0;
+			flag_rise = true;
+		}
+
+		else if (dataManager->oriData[n].y - dataManager->oriData[n - 1].y < -2){
+			if ((width != 0) && flag_rise && width < RecursiveNum / 2){
+				q = new Platform(n - 1);
+				q->indStart = q->indEnd - width;
+				q->indWidth = width;
+				p->next = q;
+				p = q;
+				q = nullptr;
+			}
+			width = 0;
+			flag_decline = true;
+		}
+		else{
+			width++;
 		}
 	}
 
+
 	p = HeadNode->next;
-	while (!p)
+	while (p != nullptr)
 	{
 		int n = p->indStart;
 		int a = 0;

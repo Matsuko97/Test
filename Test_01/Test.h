@@ -26,8 +26,8 @@ public:
     bool ReadData(QString filename);
     void RegExp(QString& str, double& data1, double& data2);
     QString GenerateFileName(QString filename, QString type);
-    bool WriteData(QString name, int num, Data* data);
-    bool WriteData(QString name, PeakNode* Peaks, int* TestData, int PeaksThreshold);
+    bool WriteData(QString filename, int num, Data* data); 
+    Data* ReadDataForPlot(QString filename, int& count);
 
 private slots:
     void FileOpen();
@@ -37,12 +37,14 @@ private slots:
     void ShowSideBar();
     void OnFiltering(int i);
     void OnPeakFinding();
+    void OnSNIP();
     void OnCalculation();
     void OnCloseAll();
     void DrawPlot(Data* data, int n, QString s);
 
 public:
     DataManager* dataManager;
+    DataManager* dataSmooth;
     Instrument* instrument;
     DataReductionParam* dataParams;
     AdsorbateParameters* adsorbate;

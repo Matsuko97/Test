@@ -78,10 +78,10 @@
     <ClInclude Include="Calculation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PeakFindingAlgorithm.h">
+    <ClInclude Include="FilteringAlgorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FilteringAlgorithm.h">
+    <ClInclude Include="PeakFindingAlgorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

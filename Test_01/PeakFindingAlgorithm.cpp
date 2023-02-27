@@ -1,9 +1,11 @@
 #include "Include.h"
 
 PeakFinding::PeakFinding(QString s) {
-	Peaks = NULL;
-	Rear = NULL;
+	Peaks = nullptr;
+	Rear = nullptr;
 	type = s;
+	fileName = "";
+	fileNameBase = "";
 }
 
 PeakFinding::~PeakFinding(){}
@@ -17,7 +19,6 @@ void PeakFinding::TrendAccumulation(DataManager* data) {
 
 	for (j = 0; j < num; j++)
 	{
-		//TestData_y[j] = TestData[j].y ;
 		TestData[j] = oriData[j].y * RoundRatio;
 	}
 
@@ -25,15 +26,15 @@ void PeakFinding::TrendAccumulation(DataManager* data) {
 
 	if (Peaks == NULL) //片段中无峰
 	{
-		/*MessageBox(hwnd, TEXT("处理完毕，无峰！"), TEXT("Over"), MB_OK);
-		return TRUE;*/
 	}
 
 	PeaksThreshold = ScreenPeaks(TestData);
+	
+	fileName = GenerateFileName(data->filename, "Trend_Accumulation");
+	WriteData(fileName, Peaks, TestData, PeaksThreshold, data);
 
-	//WriteData(data->filename, Peaks, TestData, PeaksThreshold);
-	//FreeLink(Peaks);
-	//Peaks = NULL;
+	FreeLink(Peaks);
+	Peaks = nullptr;
 }
 
 void PeakFinding::FindPeaks(int* src, int ReadNums)
@@ -267,15 +268,137 @@ double PeakFinding::SZA_C(int j) {
 #endif
 }
 
-//double SZA_G(int j);
-//double SZA_C(int j);
-//int SymmetricZero(DataManager* data);
-//void RecordInfo(int start, int end);
 int PeakFinding::SymmetricZeroArea(DataManager* data) {
+	if (data == nullptr){
+		return -1;
+	}
 
+	int num = data->NumberOfData;
+	fileName = GenerateFileName(data->filename, "Symmetric_Zero_Area");
+	fileNameBase = GenerateFileName(data->filename, "BaseLine");
+
+	double y = data->oriData[0].y;
+
+	//记录峰信息 为RecordInfo函数提供参数
+	int start = 0, end = 0;
+
+	QString strSZA = "";
+	QString strBase = "";
+
+	for (int i = m; i < num - m; ++i)
+	{
+		double temp = 0;
+		for (int j = -m; j <= m; ++j)
+		{
+			temp += SZA_C(j) * (data->oriData[i + j].y - y);
+		}
+
+		temp = sqrt(fabs(temp));
+
+		if (temp > f)
+		{
+			strSZA = strSZA + QString("%1 %2\n").arg(data->oriData[i].x, 0, 'f', 3).arg(data->oriData[i].y, 0, 'f', 3);
+
+			if (end == 0)
+			{
+				start = i;
+				++end;
+			}
+		}
+
+#if 1
+		//非谱峰区域直接输出，可作为直线本底谱
+		else
+		{
+			strBase = strBase + QString("%1 %2\n").arg(data->oriData[i].x, 0, 'f', 3).arg(data->oriData[i].y, 0, 'f', 3);
+
+			if (start != 0)
+			{
+				end = i - 1;
+				if (Peaks == NULL)
+				{
+					Peaks = (PeakNode*)malloc(sizeof(PeakNode));
+
+					Peaks->indStart = start;
+					Peaks->indEnd = end;
+					Peaks->indWidth = end - start;
+					Peaks->next = NULL;
+
+					Rear = Peaks;
+				}
+				else
+				{
+					PeakNode* temp = (PeakNode*)malloc(sizeof(PeakNode));
+					temp->indStart = start;
+					temp->indEnd = end;
+					temp->indWidth = end - start;
+					temp->next = NULL;
+
+					Rear->next = temp;
+					Rear = temp;
+				}
+				end = 0;
+				start = 0;
+			}
+		}
+#endif
+	}
+
+	WriteData(fileName, strSZA);
+	WriteData(fileNameBase, strBase);
 	return 0;
 }
 
-void PeakFinding::RecordInfo(int start, int end) {
+QString PeakFinding::GenerateFileName(QString filename, QString type) {
+	int length = filename.size();
+	QString file = filename.mid(0, length - 4);
+	QDateTime current_date_time = QDateTime::currentDateTime();
+	QString current_date = current_date_time.toString("_yyyy_MM_dd_hh") + QString::fromLocal8Bit("时") +
+		current_date_time.toString("mm") + QString::fromLocal8Bit("分") +
+		current_date_time.toString("ss") + QString::fromLocal8Bit("秒");
+	QString newFilename = file + "_" + type + current_date + ".txt";
+	return newFilename;
+}
 
+bool PeakFinding::WriteData(QString filename, QString str) {
+	QFile file(filename);
+	if (file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+		QTextStream stream(&file);
+		stream.seek(file.size());
+		stream << str;
+		file.close();
+		return true;
+	}
+	return false;
+}
+
+bool PeakFinding::WriteData(QString filename, PeakNode* Peaks, int* TestData, int PeaksThreshold, DataManager* data) {
+	QFile file(filename);
+
+	PeakNode* p = Peaks;
+
+	if (file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+		QTextStream stream(&file);
+		stream.seek(file.size());
+
+		while (p != NULL) {
+			if (abs(TestData[p->indPeak] - TestData[p->indStart]) >= PeaksThreshold) //设置阈值，过滤掉小峰RoundRatio*80/100
+			{
+				QString str = QString("%1 %2").arg(data->oriData[p->indStart].x, 0, 'f', 3).arg(data->oriData[p->indStart].y, 0, 'f', 3);
+				stream << str << endl;
+				str = QString("%1 %2").arg(data->oriData[p->indPeak].x, 0, 'f', 3).arg(data->oriData[p->indPeak].y, 0, 'f', 3);
+				stream << str << endl;
+				str = QString("%1 %2").arg(data->oriData[p->indEnd].x, 0, 'f', 3).arg(data->oriData[p->indEnd].y, 0, 'f', 3);
+				stream << str << endl;
+			}
+			p = p->next;
+		}
+
+		p = NULL;
+
+		file.close();
+
+		return true;
+	}
+	return false;
 }
