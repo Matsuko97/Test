@@ -48,6 +48,11 @@ public:
 	double SZA_C(int j);
 	int SymmetricZeroArea(DataManager* data);
 
+	//BaseLine ******** SNIP
+	void BasicSNIP(DataManager* data, int num, int m, int i, bool type);
+	void ImprovedSNIP(DataManager* data, int num, LinkList Head);
+	void ObtainInfo(PeakNode* p, int& start, int& end, int& width, int num);
+
 	QString GenerateFileName(QString filename, QString type);
 	bool WriteData(QString filename, QString str);
 	bool WriteData(QString filename, PeakNode* Peaks, int* TestData, int PeaksThreshold, DataManager* data);

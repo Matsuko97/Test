@@ -381,7 +381,7 @@ bool PeakFinding::WriteData(QString filename, PeakNode* Peaks, int* TestData, in
 		QTextStream stream(&file);
 		stream.seek(file.size());
 
-		while (p != NULL) {
+		while (p != nullptr){
 			if (abs(TestData[p->indPeak] - TestData[p->indStart]) >= PeaksThreshold) //设置阈值，过滤掉小峰RoundRatio*80/100
 			{
 				QString str = QString("%1 %2").arg(data->oriData[p->indStart].x, 0, 'f', 3).arg(data->oriData[p->indStart].y, 0, 'f', 3);
@@ -401,4 +401,114 @@ bool PeakFinding::WriteData(QString filename, PeakNode* Peaks, int* TestData, in
 		return true;
 	}
 	return false;
+}
+
+void PeakFinding::BasicSNIP(DataManager* data, int num, int m, int i, bool type, QString str)
+{
+
+	double y = 0.0;
+	double yPlusm = 0.0;
+	double yMinusm = 0.0;
+
+	//对数据进行LLS变换
+	y = log(log(sqrt(fabs(data->oriData[i].y) + 1) + 1) + 1);
+
+	double yPlusOriginal = 0.0;
+	double yMinusOriginal = 0.0;
+
+	for (int j = 1; j <= m; ++j)
+	{
+		//防止峰出现得靠前，使得没有数据用于计算
+		if (i - j < 0){
+			yMinusOriginal = data->oriData[i].y;
+		}
+		else{
+			yMinusOriginal = data->oriData[i - j].y;
+		}
+
+		//防止峰出现得靠后，没有数据用于计算
+		if (i + j >= num){
+			yPlusOriginal = data->oriData[num - 1].y;
+		}
+		else{
+			yPlusOriginal = data->oriData[i + j].y;
+		}
+
+		//对数据进行LLS变换
+		yPlusm = log(log(sqrt(fabs(yPlusOriginal) + 1) + 1) + 1);
+		yMinusm = log(log(sqrt(fabs(yMinusOriginal) + 1) + 1) + 1);
+
+		//SNIP算法逻辑
+		if (type)//出现波峰，按照SNIP算法判断计算
+		{
+			y = y < ((yPlusm + yMinusm) / 2) ? y : (yPlusm + yMinusm) / 2;
+		}
+		else//出现波谷，需要按照相反逻辑判断
+		{
+			y = y > ((yPlusm + yMinusm) / 2) ? y : (yPlusm + yMinusm) / 2;
+		}
+	}
+
+	//对处理后的本底谱数据进行反LLS变换
+	y = pow((exp(exp(y) - 1) - 1), 2) - 1;
+
+	///////
+	str = str + QString("%1 %2\n").arg(data->oriData[i].x, 0, 'f', 3).arg(y, 0, 'f', 3);
+	///////以上语句在改进的SNIP算法中用于输出数据信息
+
+	return;
+}
+
+void PeakFinding::ImprovedSNIP(DataManager* data, LinkList Head){
+	int num = data->NumberOfData;
+	QString str = "";
+	PeakNode* p = Peaks;
+	int start = 0, end = 0, width = 0;
+	bool flag = true;//判断当前是否需要获取峰的信息
+
+	for (int i = 0; i < num; ++i)
+	{
+		if (flag){
+			ObtainInfo(p, start, end, width, num);
+			flag = false;
+		}
+		else{
+		}
+
+		if (i >= start && i < end){
+			BasicSNIP(dataNew, num, width, i, false);
+		}
+		else if (i == end){
+			flag = true;
+			//需要重新获取下一个峰的信息，对SNIP算法窗口宽度进行调整
+			
+			str = str + QString("%1 %2\n").arg(data->oriData[i].x, 0, 'f', 3).arg(data->oriData[i].y, 0, 'f', 3);
+		}
+		else{
+			BasicSNIP(dataNew, num, width, i, false);
+		}
+	}
+
+	//----------注释掉上面的所有语句，只写下面的for循环，代表以固定宽度处理所有数据---------//
+	//for( int i = 0 ; i<num ;++i )
+	//{
+	//	BasicSNIP( dataNew, num, /*width*/ 31, i, false);
+	//}//固定宽度处理所有数据
+
+	return;
+}
+
+void PeakFinding::ObtainInfo(PeakNode* p, int& start, int& end, int& width, int num){
+	if (p != nullptr)	{
+		start = p->indexStart;
+		end = p->indexEnd;
+		width = p->width;
+		p = p->next;
+	}
+	else{
+		start = 0;
+		end = num;
+		width = 0;
+	}
+	return;
 }
