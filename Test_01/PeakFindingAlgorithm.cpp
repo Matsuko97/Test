@@ -459,10 +459,10 @@ void PeakFinding::BasicSNIP(DataManager* data, int num, int m, int i, bool type,
 	return;
 }
 
-void PeakFinding::ImprovedSNIP(DataManager* data, LinkList Head){
+void PeakFinding::ImprovedSNIP(DataManager* data, PeakNode* Head){
 	int num = data->NumberOfData;
 	QString str = "";
-	PeakNode* p = Peaks;
+	PeakNode* p = Head;
 	int start = 0, end = 0, width = 0;
 	bool flag = true;//判断当前是否需要获取峰的信息
 
@@ -476,7 +476,7 @@ void PeakFinding::ImprovedSNIP(DataManager* data, LinkList Head){
 		}
 
 		if (i >= start && i < end){
-			BasicSNIP(dataNew, num, width, i, false);
+			BasicSNIP(data, num, width, i, false, str);
 		}
 		else if (i == end){
 			flag = true;
@@ -485,7 +485,7 @@ void PeakFinding::ImprovedSNIP(DataManager* data, LinkList Head){
 			str = str + QString("%1 %2\n").arg(data->oriData[i].x, 0, 'f', 3).arg(data->oriData[i].y, 0, 'f', 3);
 		}
 		else{
-			BasicSNIP(dataNew, num, width, i, false);
+			BasicSNIP(data, num, width, i, false, str);
 		}
 	}
 
@@ -499,10 +499,10 @@ void PeakFinding::ImprovedSNIP(DataManager* data, LinkList Head){
 }
 
 void PeakFinding::ObtainInfo(PeakNode* p, int& start, int& end, int& width, int num){
-	if (p != nullptr)	{
-		start = p->indexStart;
-		end = p->indexEnd;
-		width = p->width;
+	if (p != nullptr){
+		start = p->indStart;
+		end = p->indEnd;
+		width = p->indWidth;
 		p = p->next;
 	}
 	else{

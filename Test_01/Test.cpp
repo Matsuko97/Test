@@ -55,7 +55,7 @@ Test::Test(QWidget *parent)
                 emit dataReady(data, count, "Base Line");
             }
         });
-    connect(ui.actionSNIP, &QAction::triggered, this, &Test::OnSNIP());
+    connect(ui.actionSNIP, SIGNAL(triggered), this, SLOT(OnSNIP()));
 
     connect(ui.actionSerial_Port, &QAction::triggered, [=](bool trigger) {
         serialPort->show();

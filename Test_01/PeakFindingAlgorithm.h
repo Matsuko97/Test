@@ -49,8 +49,8 @@ public:
 	int SymmetricZeroArea(DataManager* data);
 
 	//BaseLine ******** SNIP
-	void BasicSNIP(DataManager* data, int num, int m, int i, bool type);
-	void ImprovedSNIP(DataManager* data, int num, LinkList Head);
+	void BasicSNIP(DataManager* data, int num, int m, int i, bool type, QString str);
+	void ImprovedSNIP(DataManager* data, PeakNode* Head);
 	void ObtainInfo(PeakNode* p, int& start, int& end, int& width, int num);
 
 	QString GenerateFileName(QString filename, QString type);
