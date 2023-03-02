@@ -30,7 +30,6 @@ void PeakFinding::TrendAccumulation(DataManager* data) {
 
 	PeaksThreshold = ScreenPeaks(TestData);
 	
-	fileName = GenerateFileName(data->filename, "Trend_Accumulation");
 	WriteData(fileName, Peaks, TestData, PeaksThreshold, data);
 
 	FreeLink(Peaks);
@@ -274,8 +273,6 @@ int PeakFinding::SymmetricZeroArea(DataManager* data) {
 	}
 
 	int num = data->NumberOfData;
-	fileName = GenerateFileName(data->filename, "Symmetric_Zero_Area");
-	fileNameBase = GenerateFileName(data->filename, "BaseLine");
 
 	double y = data->oriData[0].y;
 
@@ -315,24 +312,25 @@ int PeakFinding::SymmetricZeroArea(DataManager* data) {
 			if (start != 0)
 			{
 				end = i - 1;
-				if (Peaks == NULL)
-				{
+				int wid = end - start;
+				if(wid <= 5){
+				}
+				else if (Peaks == nullptr){
 					Peaks = (PeakNode*)malloc(sizeof(PeakNode));
 
 					Peaks->indStart = start;
 					Peaks->indEnd = end;
-					Peaks->indWidth = end - start;
-					Peaks->next = NULL;
+					Peaks->indWidth = wid;
+					Peaks->next = nullptr;
 
 					Rear = Peaks;
 				}
-				else
-				{
+				else{
 					PeakNode* temp = (PeakNode*)malloc(sizeof(PeakNode));
 					temp->indStart = start;
 					temp->indEnd = end;
-					temp->indWidth = end - start;
-					temp->next = NULL;
+					temp->indWidth = wid;
+					temp->next = nullptr;
 
 					Rear->next = temp;
 					Rear = temp;
@@ -344,20 +342,9 @@ int PeakFinding::SymmetricZeroArea(DataManager* data) {
 #endif
 	}
 
-	WriteData(fileName, strSZA);
-	WriteData(fileNameBase, strBase);
+	WriteData(data->filePeak, strSZA);
+	WriteData(data->fileBase, strBase);
 	return 0;
-}
-
-QString PeakFinding::GenerateFileName(QString filename, QString type) {
-	int length = filename.size();
-	QString file = filename.mid(0, length - 4);
-	QDateTime current_date_time = QDateTime::currentDateTime();
-	QString current_date = current_date_time.toString("_yyyy_MM_dd_hh") + QString::fromLocal8Bit("时") +
-		current_date_time.toString("mm") + QString::fromLocal8Bit("分") +
-		current_date_time.toString("ss") + QString::fromLocal8Bit("秒");
-	QString newFilename = file + "_" + type + current_date + ".txt";
-	return newFilename;
 }
 
 bool PeakFinding::WriteData(QString filename, QString str) {
@@ -403,7 +390,7 @@ bool PeakFinding::WriteData(QString filename, PeakNode* Peaks, int* TestData, in
 	return false;
 }
 
-void PeakFinding::BasicSNIP(DataManager* data, int num, int m, int i, bool type, QString str)
+void PeakFinding::BasicSNIP(DataManager* data, int num, int m, int i, bool type, QString & str)
 {
 
 	double y = 0.0;
@@ -495,6 +482,7 @@ void PeakFinding::ImprovedSNIP(DataManager* data, PeakNode* Head){
 	//	BasicSNIP( dataNew, num, /*width*/ 31, i, false);
 	//}//固定宽度处理所有数据
 
+	WriteData(data->fileSNIP, str);
 	return;
 }
 

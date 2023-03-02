@@ -37,7 +37,7 @@ private slots:
     void ShowSideBar();
     void OnFiltering(int i);
     void OnPeakFinding();
-    void OnSNIP();
+    void OnBaseLine();
     void OnCalculation();
     void OnCloseAll();
     void DrawPlot(Data* data, int n, QString s);

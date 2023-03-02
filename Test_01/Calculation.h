@@ -24,6 +24,56 @@ struct LineFitInfo {
     double intercept;
 };
 
+class PeakNode {
+public:
+    int indPeak;
+    int indStart;
+    int indEnd;
+    int indWidth;
+    PeakNode* next;
+
+    PeakNode() {
+        indPeak = 0;
+        indStart = 0;
+        indEnd = 0;
+        indWidth = 0;
+        next = nullptr;
+    }
+    PeakNode(const PeakNode& p) {
+        indPeak = p.indPeak;
+        indStart = p.indStart;
+        indEnd = p.indEnd;
+        indWidth = p.indWidth;
+        next = nullptr;
+    }
+    ~PeakNode();
+
+    PeakNode* CopyNode() {
+        if (this == nullptr)
+            return nullptr;
+
+        PeakNode* cur = this;
+        while (cur != nullptr) {
+            PeakNode* temp = new PeakNode(*cur);
+            temp->next = cur->next;
+            cur->next = temp;
+            cur = temp->next;
+        }
+
+        cur = this;
+        PeakNode* res = cur->next;
+        PeakNode* p = res;
+        while (cur != nullptr && p != nullptr) {
+            PeakNode* next = cur->next;
+            cur->next = next;
+            p->next = next == nullptr ? nullptr : next->next;
+            cur = cur->next;
+            p = p->next;
+        }
+        return res;
+    }
+};
+
 class DataManager {
 public:
     Data* oriData;
@@ -35,6 +85,7 @@ public:
     QString filePeak;
     QString fileBase;
     QString fileSNIP;
+    PeakNode* Peaks;
 
 public:
     DataManager() {
@@ -47,6 +98,7 @@ public:
         filePeak = "";
         fileBase = "";
         fileSNIP = "";
+        Peaks = nullptr;
     }
 
     DataManager(const DataManager& d) {
@@ -61,6 +113,8 @@ public:
         filePeak = d.filePeak;
         fileBase = d.fileBase;
         fileSNIP = d.fileSNIP;
+
+        Peaks = d.Peaks->CopyNode();
     }
 
     ~DataManager() {

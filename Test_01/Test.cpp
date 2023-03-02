@@ -55,7 +55,7 @@ Test::Test(QWidget *parent)
                 emit dataReady(data, count, "Base Line");
             }
         });
-    connect(ui.actionSNIP, SIGNAL(triggered), this, SLOT(OnSNIP()));
+    connect(ui.actionSNIP, &QAction::triggered, this, &Test::OnBaseLine);
 
     connect(ui.actionSerial_Port, &QAction::triggered, [=](bool trigger) {
         serialPort->show();
@@ -360,17 +360,34 @@ void Test::OnPeakFinding() {
 
     if (action == ui.actionSymmetric_Zero_Area_Algorithm) {
         peakFinding = new PeakFinding("Symmetric_Zero_Area");
+        data->filePeak = GenerateFileName(data->filename, peakFinding->type);
+        data->fileBase = GenerateFileName(data->filename, "Baseline");
         peakFinding->SymmetricZeroArea(data);
+
+        dataManager->Peaks = peakFinding->Peaks->CopyNode();
+        if (dataSmooth != nullptr) {
+            dataSmooth->Peaks = peakFinding->Peaks->CopyNode();
+        }
     }
     else {
         peakFinding = new PeakFinding("Trend_Accumulation");
+
+        data->filePeak = GenerateFileName(data->filename, peakFinding->type);
+
         peakFinding->TrendAccumulation(data);
+    }
+
+    dataManager->filePeak = data->filePeak;
+    dataManager->fileBase = data->fileBase;
+    if (dataSmooth != nullptr) {
+        dataSmooth->filePeak = data->filePeak;
+        dataSmooth->fileBase = data->fileBase;
     }
 
     if (peakFinding && ui.mdiArea->subWindowList().count() > 0){
         int count = 0;
-        Data* data = ReadDataForPlot(peakFinding->fileName, count);
-        emit dataReady(data, count, peakFinding->type);
+        Data* dataDraw = ReadDataForPlot(data->filePeak, count);
+        emit dataReady(dataDraw, count, peakFinding->type);
     }
 
     if (peakFinding) {
@@ -417,6 +434,30 @@ Data* Test::ReadDataForPlot(QString filename, int& count) {
     return data;
 }
 
-void Test::OnSNIP() {
+void Test::OnBaseLine() {
+    if (dataManager->oriData == nullptr) {
+        QMessageBox::critical(this, tr("Error"), QString::fromLocal8Bit("未读取原始数据"));
+        return;
+    }
 
+    PeakFinding* peakFinding = nullptr;
+    DataManager* data = dataSmooth == nullptr ? dataManager : dataSmooth;
+    
+    peakFinding = new PeakFinding("SNIP");
+
+    data->fileSNIP = GenerateFileName(data->filename, peakFinding->type);
+
+    peakFinding->ImprovedSNIP(data, data->Peaks);
+
+    if (peakFinding && ui.mdiArea->subWindowList().count() > 0) {
+        int count = 0;
+        Data* dataDraw = ReadDataForPlot(data->fileSNIP, count);
+        emit dataReady(dataDraw, count, peakFinding->type);
+    }
+
+    if (peakFinding) {
+        delete peakFinding;
+    }
+
+    return;
 }

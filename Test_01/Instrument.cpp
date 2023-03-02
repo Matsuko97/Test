@@ -82,7 +82,7 @@ void Instrument::closeEvent(QCloseEvent* e) {
 
 		e->accept();//不会将事件传递给组件的父组件
 		process->quit();
-		process = nullptr;
+		//process = nullptr;
 	}
 }
 void Instrument::OnProcessThread() {
