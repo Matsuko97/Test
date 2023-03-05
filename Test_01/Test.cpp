@@ -391,8 +391,6 @@ void Test::OnPeakFinding() {
     }
 
     if (peakFinding) {
-        dataManager->filePeak = peakFinding->fileName;
-        dataManager->fileBase = peakFinding->fileNameBase;
         delete peakFinding;
     }
 

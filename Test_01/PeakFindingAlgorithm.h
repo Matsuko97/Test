@@ -8,7 +8,7 @@
 static int m = 5;//2m+1=W
 static int W = 11;
 static int H = 4;
-static double f = 0.5;
+static double f = 0.4;
 
 //Square
 //static int m = 31;//2m+1=W

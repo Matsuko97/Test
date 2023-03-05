@@ -98,10 +98,10 @@
     <QtUic Include="Instrument.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="SerialPort.ui">
+    <QtUic Include="AdsorbateParameters.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="AdsorbateParameters.ui">
+    <QtUic Include="SerialPort.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

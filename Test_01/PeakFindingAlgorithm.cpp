@@ -232,7 +232,8 @@ void PeakFinding::FreeLink(PeakNode* p)
 double PeakFinding::SZA_G(int j) {
 	double result = 0;
 
-	result = exp(-4 * (j * j / H / H) * log(2.0));
+	result = - exp(-4 * (j * j / H / H) * log(2.0));
+	//result = - (H * H) / (H * H + j * j);
 	return result;
 }
 
@@ -276,7 +277,7 @@ int PeakFinding::SymmetricZeroArea(DataManager* data) {
 
 	double y = data->oriData[0].y;
 
-	//记录峰信息 为RecordInfo函数提供参数
+	//记录峰信息
 	int start = 0, end = 0;
 
 	QString strSZA = "";
@@ -284,20 +285,20 @@ int PeakFinding::SymmetricZeroArea(DataManager* data) {
 
 	for (int i = m; i < num - m; ++i)
 	{
-		double temp = 0;
-		for (int j = -m; j <= m; ++j)
-		{
+		double temp = 0.0;
+		double temp2 = 0.0;
+		for (int j = -m; j <= m; ++j){
 			temp += SZA_C(j) * (data->oriData[i + j].y - y);
+
+			temp2 += pow(SZA_C(j), 2) * (data->oriData[i + j].y - y);
 		}
+		//temp = sqrt(fabs(temp));
+		temp = temp / sqrt(fabs(temp2));
 
-		temp = sqrt(fabs(temp));
-
-		if (temp > f)
-		{
+		if (temp > f){
 			strSZA = strSZA + QString("%1 %2\n").arg(data->oriData[i].x, 0, 'f', 3).arg(data->oriData[i].y, 0, 'f', 3);
 
-			if (end == 0)
-			{
+			if (end == 0){
 				start = i;
 				++end;
 			}
@@ -305,22 +306,18 @@ int PeakFinding::SymmetricZeroArea(DataManager* data) {
 
 #if 1
 		//非谱峰区域直接输出，可作为直线本底谱
-		else
-		{
+		else{
 			strBase = strBase + QString("%1 %2\n").arg(data->oriData[i].x, 0, 'f', 3).arg(data->oriData[i].y, 0, 'f', 3);
 
 			if (start != 0)
 			{
 				end = i - 1;
-				int wid = end - start;
-				if(wid <= 5){
-				}
-				else if (Peaks == nullptr){
+				if (Peaks == nullptr){
 					Peaks = (PeakNode*)malloc(sizeof(PeakNode));
 
 					Peaks->indStart = start;
 					Peaks->indEnd = end;
-					Peaks->indWidth = wid;
+					Peaks->indWidth = end - start;
 					Peaks->next = nullptr;
 
 					Rear = Peaks;
@@ -329,7 +326,7 @@ int PeakFinding::SymmetricZeroArea(DataManager* data) {
 					PeakNode* temp = (PeakNode*)malloc(sizeof(PeakNode));
 					temp->indStart = start;
 					temp->indEnd = end;
-					temp->indWidth = wid;
+					temp->indWidth = end - start;
 					temp->next = nullptr;
 
 					Rear->next = temp;
