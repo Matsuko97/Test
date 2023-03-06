@@ -20,7 +20,7 @@
       <property name="title">
        <string>串口设置 Config</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
+      <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,1,1,1,1,1,1,1,1,1,1,1,1,1">
        <item>
         <widget class="QPushButton" name="btn_serial">
          <property name="text">

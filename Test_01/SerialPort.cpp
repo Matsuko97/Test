@@ -45,6 +45,22 @@ void SerialPort::system_init()
         emit my_send_signals(true); //触发发送信号
         });
 
+    QStringList baudrate;
+    baudrate<< "600" << "1200" << "2400" << "4800" << "9600" << "19200" << "38400" << "57600" << "115200";
+    ui->cmd_baud_rate->addItems(baudrate);
+    ui->cmd_baud_rate->setCurrentIndex(4);
+
+    QStringList databits;
+    databits << "5" << "6" << "7" << "8";
+    ui->cmd_data_bits->addItems(databits);
+
+    QStringList parity;
+    parity << "NoParity" << "OddParity" << "EvenParity";
+    ui->cmd_parity->addItems(parity);
+
+    QStringList stopbits;
+    stopbits << "OneStop" << "OneAndHalfStop" << "TwoStop";
+    ui->cmd_stop_bits->addItems(stopbits);
 
     //connect
     //check port 检测通讯端口
@@ -142,11 +158,11 @@ void SerialPort::btn_open_port(bool)
     case 0:     //无校验
         global_port.setParity(QSerialPort::NoParity);
         break;
-    case 1:     //偶校验
-        global_port.setParity(QSerialPort::EvenParity);
-        break;
-    default:    //奇校验
+    case 1:     //奇校验
         global_port.setParity(QSerialPort::OddParity);
+        break;
+    default:    //偶校验
+        global_port.setParity(QSerialPort::EvenParity);
         break;
     }
 
