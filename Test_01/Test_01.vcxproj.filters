@@ -127,5 +127,8 @@
     <QtMoc Include="AdsorbateParameters.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="CustomDialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
 </Project>

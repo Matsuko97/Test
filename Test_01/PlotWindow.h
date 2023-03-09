@@ -3,6 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_PlotWindow.h"
 #include "Calculation.h"
+#include "CustomDialog.h"
 
 class PlotWindow:public QWidget
 {
@@ -10,14 +11,22 @@ class PlotWindow:public QWidget
 
 public:
 	PlotWindow(QWidget* parent = nullptr);
-	~PlotWindow();
+	//~PlotWindow();
 	
 protected:
 	void paintEvent(QPaintEvent* event) override;
 
 public:
 	void drawPlot(Data* data, int n, QString s);
-	 
+
+public slots:
+	void selectionChanged();
+	void ShowColor(const QColor& color);
+	void Set(const QColor& color);
+
+public:
+	CustomDialog* m_pColor;
+
 private:
 	Ui::PlotWindow ui;
 };

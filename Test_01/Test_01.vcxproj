@@ -115,6 +115,7 @@
     <ClInclude Include="Calculation.h" />
     <QtMoc Include="SerialPort.h" />
     <QtMoc Include="DataReductionParam.h" />
+    <QtMoc Include="CustomDialog.h" />
     <ClInclude Include="FilteringAlgorithm.h" />
     <ClInclude Include="Include.h" />
     <QtMoc Include="Instrument.h" />
