@@ -47,7 +47,8 @@ Instrument::Instrument(QDialog* parent) :QDialog(parent)
 	currentTime = 0;
 	totalTime = process->HeatingTime + process->RecoveryTime 
 			+ process->AdsorptionTime + process->DesorptionTime;
-	ui.progressBar->setRange(0, totalTime*1000);
+	totalTime *= 1000;
+	ui.progressBar->setRange(0, totalTime);
 	ui.progressBar->setValue(0);
 	ui.progressBar->show();
 	timer = new QTimer(this);
@@ -163,7 +164,7 @@ void Instrument::OnControlWord(int control) {
 void Instrument::OnStart() {
 	process->start();
 	if (ui.Vm->isChecked()) {
-		ui.progressBar->setRange(0, totalTime * 1000);
+		ui.progressBar->setRange(0, totalTime);
 
 		ui.FlowMeasurement->setEnabled(false);
 		ui.TotalFlowMeasurement->setEnabled(false);
@@ -219,7 +220,7 @@ void Instrument::onTimeout() {
 	ui.progressBar->setValue(currentTime);
 	ui.progressBar->show();
 	// 判断是否达到总时间
-	if (currentTime == 7000) {
+	if (currentTime == totalTime) {
 		timer->stop();
 		QMessageBox::information(this, "Progress", "Time is up!");
 		ui.pushButton->setEnabled(true);
@@ -232,7 +233,7 @@ void Instrument::onTimeout() {
 }
 
 Process::Process() {
-	HeatingTime = 5.0;
+	HeatingTime = 7.0;
 	HeatingTemperature = 120.0;
 	RecoveryTime = 0.0;
 	AdsorptionTime = 0.0;
