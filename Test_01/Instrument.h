@@ -3,6 +3,7 @@
 #include <QDialog>
 #include <QThread>
 #include <QMutex>
+#include <QTimer>
 #include "ui_Instrument.h"
 
 enum Type {
@@ -23,6 +24,9 @@ class Process : public QThread{
 signals:
     void ControlWordSig(int control);
     void EndThreadSig(double n);
+    void TimerStart();
+    void Error(QString strInfo);
+    void ShowValue(double value);
 
 public:
     QString adsorbent; //Îü¸½¼Á
@@ -52,6 +56,7 @@ public:
     */
 
     QMutex* _pMutex;
+    //QTimer* timer;
 
 private:
     ControlWord controlWord;
@@ -97,12 +102,17 @@ public slots:
     void OnCalibration();
     void OnStart();
     void OnEnd(double n);
+    void onTimeout();
 
 private:
     Process* process;
     QLabel* values[8];
     QPixmap* openPixmap;
     QPixmap* closePixmap;
+
+    int currentTime;
+    int totalTime;
+    QTimer* timer;
 
 private:
 	Ui::Instrument ui;

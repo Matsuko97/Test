@@ -44,6 +44,15 @@ Instrument::Instrument(QDialog* parent) :QDialog(parent)
 	ui.value8->setPixmap(*closePixmap);
 	values[7] = ui.value8;
 
+	currentTime = 0;
+	totalTime = process->HeatingTime + process->RecoveryTime 
+			+ process->AdsorptionTime + process->DesorptionTime;
+	ui.progressBar->setRange(0, totalTime*1000);
+	ui.progressBar->setValue(0);
+	ui.progressBar->show();
+	timer = new QTimer(this);
+	timer->setInterval(1000);
+
 	connect(process, &Process::ControlWordSig, this, &Instrument::OnControlWord);
 	connect(ui.Vm, SIGNAL(toggled(bool)), this, SLOT(OnProcessThread()));
 	connect(ui.FlowMeasurement, SIGNAL(toggled(bool)), this, SLOT(OnHeFlowMeasurement()));
@@ -52,6 +61,26 @@ Instrument::Instrument(QDialog* parent) :QDialog(parent)
 	connect(ui.pushButton, &QPushButton::clicked, this, &Instrument::OnStart);
 	connect(process, &Process::EndThreadSig, this, &Instrument::OnEnd);
 	connect(this, &Instrument::processSig, process, &Process::OnProcessSig);
+	connect(timer, &QTimer::timeout, this, &Instrument::onTimeout);
+	connect(process, &Process::TimerStart, this, [=]() {
+		timer->start(1000);
+		});
+	connect(process, &Process::Error, this, [=](QString strInfo) {
+		QMessageBox::critical(NULL, "Error", strInfo);
+		ui.pushButton->setEnabled(true);
+		});
+	connect(process, &Process::ShowValue, this, [=](double value) {
+		if (value > DBL_EPSILON) {
+			ui.textEdit_3->setText(QString::number(value, 'f', 3));
+		}
+		});
+	connect(ui.btnCloseAll, &QPushButton::clicked, this, [=](bool click) {
+		for (int i = 0; i < 8; ++i) {
+			values[i]->clear();
+			values[i]->setScaledContents(true);
+			values[i]->setPixmap(*closePixmap);
+		}
+		});
 }
 
 Instrument::~Instrument() {
@@ -69,8 +98,6 @@ void Instrument::paintEvent(QPaintEvent* e)
 {
 	QPainter painter(this);
 	painter.drawPixmap(rect(), QPixmap("bg.bmp"), QRect());
-
-	//process->start();
 }
 
 void Instrument::closeEvent(QCloseEvent* e) {
@@ -82,30 +109,33 @@ void Instrument::closeEvent(QCloseEvent* e) {
 
 		e->accept();//不会将事件传递给组件的父组件
 		process->quit();
-		//process = nullptr;
 	}
 }
 void Instrument::OnProcessThread() {
 	if (ui.Vm->isChecked()) {
 		process->SendControlWord(ControlWord::QVPROCESS);
+		ui.progressBar->setValue(0);
 	}
 }
 
 void Instrument::OnHeFlowMeasurement() {
 	if (ui.FlowMeasurement->isChecked()) {
 		process->SendControlWord(ControlWord::HeFLOW);
+		ui.progressBar->setValue(0);
 	}
 }
 
 void Instrument::OnTotalFlowMeasurement() {
 	if (ui.TotalFlowMeasurement->isChecked()) {
 		process->SendControlWord(ControlWord::TOTALFLOW);
+		ui.progressBar->setValue(0);
 	}
 }
 
 void Instrument::OnCalibration() {
 	if (ui.Calibration->isChecked()) {
 		process->SendControlWord(ControlWord::CALIBRATION);
+		ui.progressBar->setValue(0);
 	}
 }
 
@@ -133,15 +163,37 @@ void Instrument::OnControlWord(int control) {
 void Instrument::OnStart() {
 	process->start();
 	if (ui.Vm->isChecked()) {
+		ui.progressBar->setRange(0, totalTime * 1000);
+
+		ui.FlowMeasurement->setEnabled(false);
+		ui.TotalFlowMeasurement->setEnabled(false);
+		ui.Calibration->setEnabled(false);
+
 		emit processSig(ControlWord::QVPROCESS);
 	}
 	else if (ui.FlowMeasurement->isChecked()) {
+		ui.progressBar->setRange(0, 100);
+
+		ui.Vm->setEnabled(false);
+		ui.TotalFlowMeasurement->setEnabled(false);
+		ui.Calibration->setEnabled(false);
+
 		emit processSig(ControlWord::HeFLOW);
 	}
 	else if (ui.TotalFlowMeasurement->isChecked()) {
+		ui.progressBar->setRange(0, 100);
+
+		ui.Vm->setEnabled(false);
+		ui.FlowMeasurement->setEnabled(false);
+		ui.Calibration->setEnabled(false);
+
 		emit processSig(ControlWord::TOTALFLOW);
 	}
 	else if (ui.Calibration->isChecked()) {
+		ui.Vm->setEnabled(false);
+		ui.FlowMeasurement->setEnabled(false);
+		ui.TotalFlowMeasurement->setEnabled(false);
+
 		emit processSig(ControlWord::CALIBRATION);
 	}
 	ui.pushButton->setEnabled(false);
@@ -150,13 +202,37 @@ void Instrument::OnStart() {
 void Instrument::OnEnd(double n) {
 	process->quit();
 	ui.pushButton->setEnabled(true);
+	ui.Vm->setEnabled(true);
+	ui.FlowMeasurement->setEnabled(true);
+	ui.TotalFlowMeasurement->setEnabled(true);
+	ui.Calibration->setEnabled(true);
+	ui.progressBar->setValue(100);
+
 	if (n > DBL_EPSILON) {
 		ui.textEdit_3->setText(QString::number(n, 'f', 3));
 	}
 }
 
+void Instrument::onTimeout() {
+	// 更新当前值
+	currentTime+=1000;
+	ui.progressBar->setValue(currentTime);
+	ui.progressBar->show();
+	// 判断是否达到总时间
+	if (currentTime == 7000) {
+		timer->stop();
+		QMessageBox::information(this, "Progress", "Time is up!");
+		ui.pushButton->setEnabled(true);
+		ui.Vm->setEnabled(true);
+		ui.FlowMeasurement->setEnabled(true);
+		ui.TotalFlowMeasurement->setEnabled(true);
+		ui.Calibration->setEnabled(true);
+		currentTime = 0;
+	}
+}
+
 Process::Process() {
-	HeatingTime = 0.0;
+	HeatingTime = 5.0;
 	HeatingTemperature = 120.0;
 	RecoveryTime = 0.0;
 	AdsorptionTime = 0.0;
@@ -179,33 +255,20 @@ Process::~Process() {
 
 void Process::ProcessThread() {
 	_pMutex->lock();
-	if (fabs(HeatingTime) > DBL_EPSILON && fabs(HeatingTemperature) > DBL_EPSILON
-		&& fabs(RecoveryTime) > DBL_EPSILON && fabs(AdsorptionTime) > DBL_EPSILON
-		&& fabs(DesorptionTime) > DBL_EPSILON) {
+	if(1){
+	//if (fabs(HeatingTime) > DBL_EPSILON && fabs(HeatingTemperature) > DBL_EPSILON
+	//	&& fabs(RecoveryTime) > DBL_EPSILON && fabs(AdsorptionTime) > DBL_EPSILON
+	//	&& fabs(DesorptionTime) > DBL_EPSILON) {
 
 		controlWord = ControlWord::QVPROCESS;
 		SendControlWord();
 		//开启热导池开关
 
-		/*//开启定时器
-
-		SetTimer(hwnd, ……, 1000 * TIMEUNIT * HeatingTime);
-		//需重写OnTimer OnTimer内部     1、测温     2、发送信号
-		WaitForOneObject();
-		SetTimer(hwnd, ……, 1000 * TIMEUNIT * RecoveryTime);
-		WaitForOneObject();
-		SetTimer(hwnd, ……, 1000 * TIMEUNIT * AdsorptionTime);
-		WaitForOneObject();
-		SetTimer(hwnd, ……, 1000 * TIMEUNIT * DesorptionTime);
-		WaitForOneObject();
-
-		*/
-
+		emit TimerStart();
 	}
 	else {
-		QString dlgTitle = "Error";
 		QString strInfo = QString::fromLocal8Bit("数据缺失");
-		//QMessageBox::critical(NULL, dlgTitle, strInfo);
+		emit Error(strInfo);
 	}
 
 	_pMutex->unlock();
@@ -235,6 +298,9 @@ void Process::TotalFlowMeasurement() {
 	int i = 0;
 	while (i < 10) {  //连续测量保持稳定后输出
 		double flow = GetMyInfo(flowrate, TotalFlow);
+		msleep(50);//使用sleep模拟测量的过程
+		emit ShowValue(flow);
+
 		if (abs(flow - TotalFlow) <= 5) {
 			++i;
 		}
@@ -259,6 +325,9 @@ void Process::HeFlowMeasurement() {
 	int i = 0;
 	while (i < 10) {  //连续测量保持稳定后输出
 		double flow = GetMyInfo(flowrate, CarrierGasFlow);
+		msleep(50);//使用sleep模拟测量的过程
+		emit ShowValue(flow);
+
 		if (abs(flow - CarrierGasFlow) <= 5) {
 			++i;
 		}
@@ -304,7 +373,7 @@ double Process::GetMyInfo(Type type, double ori) {
 		break;
 
 	case flowrate:
-		if (ret < 240) {
+		if (ret < 700) {
 			ret += (rand() % 50) + 5;
 		}
 		else {}
@@ -319,15 +388,9 @@ void Process::OnProcessSig(ControlWord c) {
 }
 
 void Process::run() {
-	QTimer* timer = new QTimer();
 	switch (controlWord) {
 	case ControlWord::QVPROCESS:
-		timer->setInterval(10000);
-		timer->start();
 		ProcessThread();
-		connect(timer, &QTimer::timeout, this, [=]() {
-			emit EndThreadSig(0);
-			});
 		break;
 
 	case ControlWord::HeFLOW:
@@ -339,12 +402,7 @@ void Process::run() {
 		break;
 
 	case ControlWord::CALIBRATION:
-		timer->setInterval(5000);
-		timer->start();
 		Calibration();
-		connect(timer, &QTimer::timeout, this, [=]() {
-			emit EndThreadSig(0);
-			});
 		break;
 	}
 
