@@ -7,11 +7,11 @@
 #include <QHBoxLayout>
 #include <QGroupBox>
 
-class CustomDialog : public QColorDialog
+class CustomDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit CustomDialog(QWidget* parent, int Pen, QColor Color);
+    explicit CustomDialog(QWidget* parent, int Pen, QColor Color, int Line);
 
 public:
     QComboBox* penStyle;
@@ -25,6 +25,9 @@ public:
     int scatter;
     bool scatterFlag;
     QColor color;
+
+signals:
+    void closedSignal();
 
 private slots:
     void comboBoxIndexChanged(int index);

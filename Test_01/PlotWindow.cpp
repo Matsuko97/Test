@@ -4,13 +4,11 @@ QVector<QCPScatterStyle::ScatterShape> shapes = { QCPScatterStyle::ssCross, QCPS
     QCPScatterStyle::ssCircle, QCPScatterStyle::ssDisc, QCPScatterStyle::ssSquare,
     QCPScatterStyle::ssDiamond, QCPScatterStyle::ssStar, QCPScatterStyle::ssTriangle };
 
-CustomDialog::CustomDialog(QWidget* parent, int Pen, QColor Color) :
-    QColorDialog(parent)
+CustomDialog::CustomDialog(QWidget* parent, int Pen, QColor Color, int Line) :
+    QDialog(parent)
 {
-    this->setObjectName(QString::fromUtf8("Custom Setting"));
-
     pen = Pen;
-    line = 0;
+    line = Line;
     lineFlag = false;
     scatter = 0;
     scatterFlag = false;
@@ -18,56 +16,64 @@ CustomDialog::CustomDialog(QWidget* parent, int Pen, QColor Color) :
 
     QWidget* centralwidget = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(centralwidget);
+
     //pen
     QGroupBox* penBox = new QGroupBox(centralwidget);
     QHBoxLayout* penLayout = new QHBoxLayout(penBox);
 
     penStyle = new QComboBox(penBox);
-    penStyle->addItem("SolidLine");
-    penStyle->addItem("DashLine");
-    penStyle->addItem("DotLine");
+    //penStyle = new QComboBox(this);
+    penStyle->addItem("Solid Line");
+    penStyle->addItem("Dash Line");
+    penStyle->addItem("Dot Line");
+    penStyle->setCurrentIndex(pen - 1);
 
-    QLabel* penLabel = new QLabel(penBox);
-    penLabel->setObjectName(QString::fromUtf8("Pen Style :"));
+    QLabel* penLabel = new QLabel("Pen Style : ", penBox);
     penLayout->addWidget(penLabel);
     penLayout->addWidget(penStyle);
     mainLayout->addWidget(penBox);
+
     //line
     QGroupBox* lineBox = new QGroupBox(centralwidget);
     QHBoxLayout* lineLayout = new QHBoxLayout(lineBox);
 
     lineStyle = new QComboBox(lineBox);
     QStringList lineNames;
-    lineNames << "lsNone" << "lsLine";
+    lineNames << "None" << "Line";
     lineStyle->addItems(lineNames);
+    lineStyle->setCurrentIndex(line < 0 ? 0 : line);
 
-    QLabel* lineLabel = new QLabel(lineBox);
-    lineLabel->setObjectName(QString::fromUtf8("line Style :"));
+    QLabel* lineLabel = new QLabel("line Style : ", lineBox);
     lineLayout->addWidget(lineLabel);
     lineLayout->addWidget(lineStyle);
     mainLayout->addWidget(lineBox);
+
     //scatter
     QGroupBox* scatterBox = new QGroupBox(centralwidget);
     QHBoxLayout* scatterLayout = new QHBoxLayout(scatterBox);
 
     scatterStyle = new QComboBox(scatterBox);
+
     QStringList scatterNames;
-    scatterNames << "ssCross" << "ssPlus" << "ssCircle" << "ssDisc" << "ssSquare" << "ssDiamond" << "ssStar" << "ssTriangle";
+    scatterNames << "None" << "Cross" << "Plus" << "Circle" << "Disc" << "Square" << "Diamond" << "Star" << "Triangle";
     scatterStyle->addItems(scatterNames);
 
-    QLabel* scatterLabel = new QLabel(scatterBox);
-    scatterLabel->setObjectName(QString::fromUtf8("Scatter Style :"));
+    QLabel* scatterLabel = new QLabel("Scatter Style : ", scatterBox);
     scatterLayout->addWidget(scatterLabel);
     scatterLayout->addWidget(scatterStyle);
     mainLayout->addWidget(scatterBox);
 
-    colorDialog = new QColorDialog(centralwidget);
+    colorDialog = new QColorDialog(this);
+    colorDialog->setOption(QColorDialog::ShowAlphaChannel, true);
     colorDialog->setCurrentColor(color);
     mainLayout->addWidget(colorDialog);
+    setLayout(mainLayout);
+    setWindowTitle("Custom Setting Dialog");
 
     connect(penStyle, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CustomDialog::comboBoxIndexChanged);
     connect(lineStyle, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CustomDialog::comboBoxIndexChanged);
     connect(scatterStyle, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CustomDialog::comboBoxIndexChanged);
+    connect(this, &CustomDialog::closedSignal, this, &QDialog::accept);
 }
 
 void CustomDialog::comboBoxIndexChanged(int index) {
@@ -77,11 +83,11 @@ void CustomDialog::comboBoxIndexChanged(int index) {
         pen = index + 1;
     }
     else if (combo == lineStyle) {
-        line = index;
+        line = index == 1 ? 1 : -1;
         lineFlag = true;
     }
     else {
-        scatter = index;
+        scatter = index - 1;
         scatterFlag = true;
     }
 }
@@ -182,18 +188,19 @@ void PlotWindow::selectionChanged()
         QCPGraph* graph = ui.customPlot->graph(i);
         QCPPlottableLegendItem* item = ui.customPlot->legend->itemWithPlottable(graph);
         if (item->selected()/*||graph->selected()*/) {
-
             QPen qPen = ui.customPlot->graph(i)->pen();
-            QColor color = qPen.color();
-            m_pColor = new CustomDialog(this, (int)qPen.style(), qPen.color());
+            int Line = (int)graph->lineStyle();
+            m_pColor = new CustomDialog(this, (int)qPen.style(), qPen.color(), Line);
             m_pColor->setWindowModality(Qt::ApplicationModal);
-            m_pColor->setCurrentColor(color);//³õÊ¼ÑÕÉ«
+            //m_pColor->colorDialog->setCurrentColor(qPen.color());//³õÊ¼ÑÕÉ«
             m_pColor->show();
-            m_pColor->move(720, 200);
-            //connect(m_pColor, &CustomDialog::currentColorChanged, this, &PlotWindow::ShowColor);//ÏÔÊ¾µ±Ç°Ñ¡ÖÐÑÕÉ«µÄÐ§¹û
-            //connect(m_pColor, &CustomDialog::colorSelected, this, &PlotWindow::Set);//OKÐÅºÅÁ¬½Ó
-            connect(m_pColor, SIGNAL(currentColorChanged(QColor)), this, SLOT(ShowColor(QColor)));//ÏÔÊ¾µ±Ç°Ñ¡ÖÐÑÕÉ«µÄÐ§¹û
-            connect(m_pColor, SIGNAL(colorSelected(QColor)), this, SLOT(Set(QColor)));//OKÐÅºÅÁ¬½Ó
+            m_pColor->move(720, 100);
+            connect(m_pColor->colorDialog, SIGNAL(currentColorChanged(QColor)), this, SLOT(ShowColor(QColor)));//ÏÔÊ¾µ±Ç°Ñ¡ÖÐÑÕÉ«µÄÐ§¹û
+            connect(m_pColor->colorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(Set(QColor)));//OKÐÅºÅÁ¬½Ó
+            connect(m_pColor->colorDialog, &QColorDialog::rejected, [=]() {
+                // ÓÃ»§µ¥»÷ÁË¡°Cancel¡±°´Å¥£¬Ö´ÐÐÏàÓ¦²Ù×÷
+                emit m_pColor->closedSignal();
+                });
         }
     }
 }
@@ -208,7 +215,9 @@ void PlotWindow::Set(const QColor& color)//µ±ÓÃ»§Ñ¡ÖÐÄ³Ò»ÑÕÉ«²¢µã»÷¡°OK¡±ºó£¬¾Í»
         QCPGraph* graph = ui.customPlot->graph(i);
         QCPPlottableLegendItem* item = ui.customPlot->legend->itemWithPlottable(graph);
         if (item->selected()/*|| graph->selected()*/) {
-            graph->setPen(QPen(Qt::PenStyle(m_pColor->pen)));
+            QPen pen(color);
+            pen.setStyle(Qt::PenStyle(m_pColor->pen));
+            graph->setPen(pen);
 
             if (m_pColor->lineFlag) {
                 ui.customPlot->graph(i)->setLineStyle((QCPGraph::LineStyle)m_pColor->line);
@@ -221,10 +230,10 @@ void PlotWindow::Set(const QColor& color)//µ±ÓÃ»§Ñ¡ÖÐÄ³Ò»ÑÕÉ«²¢µã»÷¡°OK¡±ºó£¬¾Í»
             }
             else {}
 
-            graph->setPen(QPen(color));
         }
     }
 
+    emit m_pColor->closedSignal();
     m_pColor = nullptr;
 
     ui.customPlot->replot();
