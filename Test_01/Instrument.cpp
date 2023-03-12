@@ -6,7 +6,7 @@ Instrument::Instrument(QDialog* parent) :QDialog(parent)
 	setFixedSize(761, 449);
 	//setStyleSheet("border-image:url(bg.bmp)");
 
-	process = new Process();
+	process = new Process(this);
 	openPixmap = new QPixmap("open.png");
 	openPixmap->scaled(ui.value1->size(), Qt::KeepAspectRatio);
 	closePixmap = new QPixmap("close.png");
@@ -82,6 +82,8 @@ Instrument::Instrument(QDialog* parent) :QDialog(parent)
 			values[i]->setPixmap(*closePixmap);
 		}
 		});
+
+	connect(this, &Instrument::stopThread, process, &Process::stop);
 }
 
 Instrument::~Instrument() {
@@ -101,17 +103,20 @@ void Instrument::paintEvent(QPaintEvent* e)
 	painter.drawPixmap(rect(), QPixmap("bg.bmp"), QRect());
 }
 
-void Instrument::closeEvent(QCloseEvent* e) {
+void Instrument::closeEvent(QCloseEvent* event) {
 	if (QMessageBox::question(this,
 		tr("Quit"),
 		tr("Are you sure to quit Instrument?"),
 		QMessageBox::Yes, QMessageBox::No)
 		== QMessageBox::Yes) {
+		event->accept();    // 接受关闭事件
 
-		e->accept();//不会将事件传递给组件的父组件
-		process->quit();
+		emit stopThread();  // 发送终止线程的信号
+		process->stop();    // 退出事件循环
+		process->wait();    // 等待线程结束
 	}
 }
+
 void Instrument::OnProcessThread() {
 	if (ui.Vm->isChecked()) {
 		process->SendControlWord(ControlWord::QVPROCESS);
@@ -162,7 +167,13 @@ void Instrument::OnControlWord(int control) {
 }
 
 void Instrument::OnStart() {
-	process->start();
+	if (!process->isRunning()) {
+		process->start();
+	}
+
+	process->setReady(true);
+	process->m_stop = false;
+	process->wakeUp();
 	if (ui.Vm->isChecked()) {
 		ui.progressBar->setRange(0, totalTime);
 
@@ -211,6 +222,7 @@ void Instrument::OnEnd(double n) {
 
 	if (n > DBL_EPSILON) {
 		ui.textEdit_3->setText(QString::number(n, 'f', 3));
+		QMessageBox::information(this, tr("Progress"), QString::fromLocal8Bit("测量已完成!"));
 	}
 }
 
@@ -222,7 +234,7 @@ void Instrument::onTimeout() {
 	// 判断是否达到总时间
 	if (currentTime == totalTime) {
 		timer->stop();
-		QMessageBox::information(this, "Progress", "Time is up!");
+		QMessageBox::information(this, tr("Progress"), tr("Time is up!"));
 		ui.pushButton->setEnabled(true);
 		ui.Vm->setEnabled(true);
 		ui.FlowMeasurement->setEnabled(true);
@@ -232,7 +244,10 @@ void Instrument::onTimeout() {
 	}
 }
 
-Process::Process() {
+
+//*********** Process *********
+Process::Process(QObject* parent) : QThread(parent), 
+		m_mutex(QMutex::NonRecursive), m_waitCondition(){
 	HeatingTime = 7.0;
 	HeatingTemperature = 120.0;
 	RecoveryTime = 0.0;
@@ -246,16 +261,15 @@ Process::Process() {
 	controlWord = ControlWord::QVPROCESS;
 	Values |= (int)controlWord;
 
-	_pMutex = new QMutex;
+	m_ready = false;
+	m_stop = true;
+	//m_waitCondition = QWaitCondition();
 }
 
 Process::~Process() {
-	delete  _pMutex;
-	_pMutex = nullptr;
 }
 
 void Process::ProcessThread() {
-	_pMutex->lock();
 	if(1){
 	//if (fabs(HeatingTime) > DBL_EPSILON && fabs(HeatingTemperature) > DBL_EPSILON
 	//	&& fabs(RecoveryTime) > DBL_EPSILON && fabs(AdsorptionTime) > DBL_EPSILON
@@ -272,21 +286,17 @@ void Process::ProcessThread() {
 		emit Error(strInfo);
 	}
 
-	_pMutex->unlock();
 }
 
 void Process::Calibration() {
-	_pMutex->lock();
 
 	//SendMessage发送阀门状态控制字
 	controlWord = ControlWord::CALIBRATION;
 	SendControlWord();
 
-	_pMutex->unlock();
 }
 
 void Process::TotalFlowMeasurement() {
-	_pMutex->lock();
 
 	//改变阀门状态
 	controlWord = ControlWord::TOTALFLOW;
@@ -312,11 +322,9 @@ void Process::TotalFlowMeasurement() {
 	}
 
 	emit EndThreadSig(TotalFlow);
-	_pMutex->unlock();
 }
 
 void Process::HeFlowMeasurement() {
-	_pMutex->lock();
 
 	//改变阀门状态
 	controlWord = ControlWord::HeFLOW;
@@ -339,7 +347,6 @@ void Process::HeFlowMeasurement() {
 	}
 
 	emit EndThreadSig(CarrierGasFlow);
-	_pMutex->unlock();
 }
 
 void Process::SendControlWord() {
@@ -389,23 +396,57 @@ void Process::OnProcessSig(ControlWord c) {
 }
 
 void Process::run() {
-	switch (controlWord) {
-	case ControlWord::QVPROCESS:
-		ProcessThread();
-		break;
+	//QMutex mutex;
+	//QWaitCondition waitCondition;
 
-	case ControlWord::HeFLOW:
-		HeFlowMeasurement();
-		break;
+	// 锁定互斥锁，避免多个线程同时访问共享资源
+	QMutexLocker locker(&m_mutex);
 
-	case ControlWord::TOTALFLOW:
-		TotalFlowMeasurement();
-		break;
+	// 等待信号的到来
+	while (!m_stop)
+	{
+		if (!m_ready) {
+			m_waitCondition.wait(&m_mutex);
+		}
+		if (m_stop) {
+			break;
+		}
 
-	case ControlWord::CALIBRATION:
-		Calibration();
-		break;
+		// 重置标志位
+		m_ready = false;
+
+		switch (controlWord) {
+		case ControlWord::QVPROCESS:
+			ProcessThread();
+			break;
+
+		case ControlWord::HeFLOW:
+			HeFlowMeasurement();
+			break;
+
+		case ControlWord::TOTALFLOW:
+			TotalFlowMeasurement();
+			break;
+
+		case ControlWord::CALIBRATION:
+			Calibration();
+			break;
+		}
 	}
+	//exec();
+}
 
-	exec();
+void Process::setReady(bool ready){
+	QMutexLocker locker(&m_mutex);
+	m_ready = ready;
+}
+
+void Process::wakeUp() {
+	QMutexLocker locker(&m_mutex);
+	m_waitCondition.wakeAll();
+}
+
+void Process::stop() {
+	m_stop = true;
+	wakeUp();
 }

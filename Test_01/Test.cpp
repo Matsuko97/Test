@@ -9,9 +9,9 @@ Test::Test(QWidget *parent)
 
     dataManager = new DataManager();
     dataSmooth = nullptr;
-    instrument = new Instrument();
-    dataParams = new DataReductionParam();
-    adsorbate = new AdsorbateParameters();
+    instrument = nullptr;
+    dataParams = nullptr;
+    adsorbate = nullptr;
     serialPort = new SerialPort();
     sidebar = new SideBar();
     sidebar->setParent(this);
@@ -19,14 +19,17 @@ Test::Test(QWidget *parent)
     connect(this, &Test::dataReady, this, &Test::DrawPlot);
 
     connect(ui.actionInstrument, &QAction::triggered, [=](bool trigger) {
+        instrument = new Instrument();
         instrument->show();
         });
 
     connect(ui.actionDataParam, &QAction::triggered, [=](bool trigger) {
+        dataParams = new DataReductionParam();
         dataParams->show();
         });
 
     connect(ui.actionAdsorbates, &QAction::triggered, [=](bool trigger) {
+        adsorbate = new AdsorbateParameters();
         adsorbate->show();
         });
 
@@ -83,15 +86,13 @@ Test::~Test()
     ui.mdiArea->closeAllSubWindows();
 
     delete dataManager;
-    dataManager = nullptr;
-    delete instrument;
-    instrument = nullptr;
-    delete dataParams;
-    dataParams = nullptr;
-    delete serialPort;
-    serialPort = nullptr;
+    if(instrument)
+        delete instrument;
+    if(dataParams)
+        delete dataParams;
+    if(serialPort)
+        delete serialPort;
     delete sidebar;
-    sidebar = nullptr;
 }
 
 void Test::FileOpen() {

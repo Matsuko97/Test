@@ -3,6 +3,7 @@
 #include <QDialog>
 #include <QThread>
 #include <QMutex>
+#include <QWaitCondition>
 #include <QTimer>
 #include "ui_Instrument.h"
 
@@ -54,12 +55,14 @@ public:
     6       VentingValue
     7       MixedGasCalibrationValue
     */
-
-    QMutex* _pMutex;
-    //QTimer* timer;
+    bool m_stop;
 
 private:
     ControlWord controlWord;
+    bool m_ready;
+
+    QMutex m_mutex;
+    QWaitCondition m_waitCondition;
 
 public:
     void ProcessThread();
@@ -67,9 +70,14 @@ public:
     void HeFlowMeasurement();
     void TotalFlowMeasurement();
     void OnProcessSig(ControlWord c);
+    void setReady(bool ready);
+    void wakeUp();
+
+public slots:
+    void stop();
 
 public:
-    Process();
+    Process(QObject* parent);
     ~Process();
 
     void SendControlWord();
@@ -85,6 +93,7 @@ class Instrument :public QDialog
 
 signals:
     void processSig(ControlWord c);
+    void stopThread();
 
 public:
 	Instrument(QDialog* parent = nullptr);
