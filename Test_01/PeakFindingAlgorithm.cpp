@@ -165,8 +165,8 @@ void PeakFinding::FindPeaks(int* src, int ReadNums)
 
 	}
 
-	p = NULL;
-	q = NULL;
+	p = nullptr;
+	q = nullptr;
 }
 
 int PeakFinding::ScreenPeaks(int* src)   // 遍历检测到的峰，取峰值点第三大的峰高作为阈值
@@ -225,7 +225,7 @@ void PeakFinding::FreeLink(PeakNode* p)
 		free(p);
 		p = q;
 	}
-	p = NULL;
+	p = nullptr;
 }
 
 //Peak-Finding Algorithm ******** Symmetric Zero Area

@@ -9,6 +9,9 @@ class PlotWindow:public QWidget
 {
 	Q_OBJECT
 
+signals:
+	void curveSelected(QCPGraph* graph);
+
 public:
 	PlotWindow(QWidget* parent = nullptr);
 	//~PlotWindow();
@@ -27,6 +30,6 @@ public slots:
 public:
 	CustomDialog* m_pColor;
 
-private:
+
 	Ui::PlotWindow ui;
 };

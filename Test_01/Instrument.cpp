@@ -263,7 +263,6 @@ Process::Process(QObject* parent) : QThread(parent),
 
 	m_ready = false;
 	m_stop = true;
-	//m_waitCondition = QWaitCondition();
 }
 
 Process::~Process() {

@@ -66,7 +66,7 @@ Test::Test(QWidget *parent)
 
     connect(ui.actionPlot, SIGNAL(triggered()), this, SLOT(ShowPlotWindow()));
     connect(this, SIGNAL(plotWindowResize()), this, SLOT(OnPlotWindowResize()));
-
+    
     connect(ui.actionSideBar, SIGNAL(triggered()), this, SLOT(ShowSideBar()));
     if (ui.actionSideBar->isChecked()) {
         QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
@@ -86,13 +86,22 @@ Test::~Test()
     ui.mdiArea->closeAllSubWindows();
 
     delete dataManager;
-    if(instrument)
+    dataManager = nullptr;
+
+    if (instrument) {
         delete instrument;
-    if(dataParams)
+        instrument = nullptr;
+    }
+    if (dataParams) {
         delete dataParams;
-    if(serialPort)
+        dataParams = nullptr;
+    }
+    if (serialPort) {
         delete serialPort;
+        serialPort = nullptr;
+    }
     delete sidebar;
+    sidebar = nullptr;
 }
 
 void Test::FileOpen() {
@@ -190,8 +199,8 @@ bool Test::WriteData(QString filename, int num, Data* data) {
     return false;
 }
 
-void Test::SaveFile() {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), "", tr("Curve TagName Files (*.TXT)"));
+void Test::SaveFile(QCPGraph* graph) {
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), "", tr("Curve TagName Files (*.TXT);;Curve TagName Files (*.CSV)"));
     if (!fileName.isEmpty())
     {
         //一些处理工作，写数据到文件中
@@ -199,12 +208,16 @@ void Test::SaveFile() {
         QFile file(fileName);
         if (!file.open(QIODevice::ReadWrite | QIODevice::Text))
             QMessageBox::critical(this, tr("Error"), tr("Failed to open file \"%1\" for save!").arg(fileName), QMessageBox::Ok);
-        //write file
-        QTextStream wr(&file);
-        /*for (int i = 0; i < plotCurves.count(); ++i)
-        {
-            wr << plotCurves[i]->title().text() << "\n";
-        }*/
+        QTextStream out(&file);
+
+        // Write curve data to file
+        QCPDataContainer<QCPGraphData> data = *graph->data();
+        QCPDataContainer<QCPGraphData>::iterator it;
+        for (it = data.begin(); it != data.end(); ++it) {
+            QString str = QString("%1,%2").arg(it->key, 0, 'f', 3).arg(it->value, 0, 'f', 3);
+            //out << it->key << "," << it->value << "\n";
+            out << str << endl;
+        }
         file.close();
     }
     else
@@ -224,6 +237,10 @@ void Test::ShowPlotWindow() {
     PlotWindow* plot = new PlotWindow();
     QMdiSubWindow* s = nullptr;
 
+    plot->ui.customPlot->setContextMenuPolicy(Qt::CustomContextMenu);
+    // 连接QCustomPlot的customContextMenuRequested信号到相应的槽函数
+    connect(plot->ui.customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+
     s = ui.mdiArea->addSubWindow(plot);
 
     if (ui.actionSideBar->isChecked()) {
@@ -233,6 +250,72 @@ void Test::ShowPlotWindow() {
         s->setGeometry(0, 0, this->width()-5, this->height() - ui.MENU->height() - 30);
     }
     plot->show();
+}
+
+PlotWindow* Test::showPlot() {
+    int n = ui.mdiArea->subWindowList().count();
+    if (n >= 10)
+        return nullptr;
+
+    subWindowCount = n + 1;
+
+    if (n > 1) {
+    }
+
+    PlotWindow* plot = new PlotWindow();
+    QMdiSubWindow* s = nullptr;
+
+    plot->ui.customPlot->setContextMenuPolicy(Qt::CustomContextMenu);
+    // 连接QCustomPlot的customContextMenuRequested信号到相应的槽函数
+    connect(plot->ui.customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+
+    s = ui.mdiArea->addSubWindow(plot);
+
+    if (ui.actionSideBar->isChecked()) {
+        s->setGeometry(this->width() / 6, 0, this->width() * 5 / 6 - 5, this->height() - ui.MENU->height() - 30);
+    }
+    else {
+        s->setGeometry(0, 0, this->width() - 5, this->height() - ui.MENU->height() - 30);
+    }
+    plot->show();
+    return plot;
+}
+
+void Test::showContextMenu(QPoint pos) {
+    // 获取当前鼠标的位置所在的QCPAbstractPlottable（即当前选择的曲线）
+    QMdiSubWindow* subWindow = ui.mdiArea->currentSubWindow();
+    if (subWindow) {
+        PlotWindow* plot = dynamic_cast<PlotWindow*>(subWindow->widget());
+        if (plot) {
+            // 在此处使用plot指针
+            QCPAbstractPlottable* plottable = plot->ui.customPlot->plottableAt(pos);
+            if (plottable) {
+                // 如果当前选择的是曲线，则弹出菜单
+                QMenu contextMenu(this);
+                QAction* showAction = contextMenu.addAction(QString::fromLocal8Bit("在新图层中显示"));
+                connect(showAction, SIGNAL(triggered()), this, SLOT(ShowInNewPlot()));
+                
+                contextMenu.addAction(QString::fromLocal8Bit("保存数据"), this, [=]() {
+                    QCPGraph* selectedGraph = qobject_cast<QCPGraph*>(plot->ui.customPlot->selectedPlottables().first());
+
+                    // If a curve is selected, emit the curveSelected signal
+                    if (selectedGraph) {
+                        emit plot->curveSelected(selectedGraph);
+                    }
+                    connect(plot, &PlotWindow::curveSelected, this, [=](QCPGraph* graph) {
+                        QString filename = "curve_data.csv";
+                        SaveFile(graph);
+                        });
+                    });
+                //contextMenu.addAction("保存数据", this, SLOT(saveData()));
+                contextMenu.exec(plot->ui.customPlot->mapToGlobal(pos));
+            }
+        }
+        else {
+        }
+    }
+    else {
+    }
 }
 
 void Test::ShowSideBar() {
@@ -459,4 +542,49 @@ void Test::OnBaseLine() {
     }
 
     return;
+}
+
+void Test::ShowInNewPlot() {
+    //QAction* action = qobject_cast<QAction*>(sender());
+    //if (!action)
+    //    return;
+
+    //// 获取菜单项所在的菜单指针
+    //QMenu* menu = qobject_cast<QMenu*>(action->parent());
+    //if (!menu)
+    //    return;
+
+    //// 获取菜单所在的窗口指针
+    //PlotWindow* widget = (PlotWindow*)menu->parentWidget();
+    //if (!widget)
+    //    return;
+
+    QMdiSubWindow* subWindow = ui.mdiArea->currentSubWindow();
+    if (!subWindow)
+        return;
+    
+    PlotWindow* oldPlot = dynamic_cast<PlotWindow*>(subWindow->widget());
+
+    QCustomPlot* plot = oldPlot->ui.customPlot;
+    if (!plot)
+        return;
+
+    QList<QCPGraph*> selectedGraphs = plot->selectedGraphs();
+    if (selectedGraphs.size() != 1)
+        return;
+
+    PlotWindow* newPlot = showPlot();
+    if (newPlot == nullptr)
+        return;
+
+    QCPGraph* selectedGraph = selectedGraphs.at(0);
+    QSharedPointer<QCPGraphDataContainer> data = selectedGraph->data();
+    // 使用 dataContainer 对象中的数据
+
+    QCustomPlot* otherCustomPlot = newPlot->ui.customPlot;
+    QCPGraph* graphInOtherPlot = otherCustomPlot->addGraph();
+    graphInOtherPlot->setData(data);
+
+    otherCustomPlot->rescaleAxes();
+    otherCustomPlot->replot();
 }

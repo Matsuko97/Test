@@ -10,6 +10,7 @@
 #include "Instrument.h"
 #include "SerialPort.h"
 #include "AdsorbateParameters.h"
+#include <QMenu>
 
 class Test : public QMainWindow
 {
@@ -28,11 +29,13 @@ public:
     QString GenerateFileName(QString filename, QString type);
     bool WriteData(QString filename, int num, Data* data); 
     Data* ReadDataForPlot(QString filename, int& count);
+    PlotWindow* showPlot();
 
 private slots:
     void FileOpen();
-    void SaveFile();
+    void SaveFile(QCPGraph* graph);
     void ShowPlotWindow();
+    void showContextMenu(QPoint pos);
     void OnPlotWindowResize();
     void ShowSideBar();
     void OnFiltering(int i);
@@ -41,6 +44,7 @@ private slots:
     void OnCalculation();
     void OnCloseAll();
     void DrawPlot(Data* data, int n, QString s);
+    void ShowInNewPlot();
 
 public:
     DataManager* dataManager;

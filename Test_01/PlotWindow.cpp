@@ -106,6 +106,7 @@ PlotWindow::PlotWindow(QWidget* parent):QWidget(parent)
         Qt::WindowStaysOnTopHint);
 
     ui.customPlot->legend->setSelectableParts(QCPLegend::spItems);
+    ui.customPlot->setSelectionTolerance(5);
     connect(ui.customPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
 }
 
@@ -192,7 +193,6 @@ void PlotWindow::selectionChanged()
             int Line = (int)graph->lineStyle();
             m_pColor = new CustomDialog(this, (int)qPen.style(), qPen.color(), Line);
             m_pColor->setWindowModality(Qt::ApplicationModal);
-            //m_pColor->colorDialog->setCurrentColor(qPen.color());//³õÊ¼ÑÕÉ«
             m_pColor->show();
             m_pColor->move(720, 100);
             connect(m_pColor->colorDialog, SIGNAL(currentColorChanged(QColor)), this, SLOT(ShowColor(QColor)));//ÏÔÊ¾µ±Ç°Ñ¡ÖÐÑÕÉ«µÄÐ§¹û
@@ -209,6 +209,7 @@ void PlotWindow::ShowColor(const QColor& color)//Ö»Òªµ±Ç°ÑÕÉ«ÔÚ¶Ô»°¿òÖÐ·¢Éú¸Ä±ä£
 {
     qDebug() << "1111" << color;
 }
+
 void PlotWindow::Set(const QColor& color)//µ±ÓÃ»§Ñ¡ÖÐÄ³Ò»ÑÕÉ«²¢µã»÷¡°OK¡±ºó£¬¾Í»á´¥·¢¸ÃÐÅºÅ¡£
 {
     for (int i = 0; i < ui.customPlot->graphCount(); ++i) {
@@ -226,10 +227,14 @@ void PlotWindow::Set(const QColor& color)//µ±ÓÃ»§Ñ¡ÖÐÄ³Ò»ÑÕÉ«²¢µã»÷¡°OK¡±ºó£¬¾Í»
             }
 
             if (m_pColor->scatterFlag) {
-                ui.customPlot->graph(i)->setScatterStyle(QCPScatterStyle(shapes.at(m_pColor->scatter)));
+                QCPScatterStyle scatterStyle;
+                scatterStyle.setShape(shapes.at(m_pColor->scatter)); // ÉèÖÃÐÎ×´
+                scatterStyle.setSize(7); // ÉèÖÃ´óÐ¡Îª7ÏñËØ
+                ui.customPlot->graph(i)->setScatterStyle(scatterStyle);
+                //ui.customPlot->graph(i)->setScatterStyle(QCPScatterStyle(shapes.at(m_pColor->scatter)));
             }
-            else {}
-
+            else {
+            }
         }
     }
 
@@ -238,3 +243,4 @@ void PlotWindow::Set(const QColor& color)//µ±ÓÃ»§Ñ¡ÖÐÄ³Ò»ÑÕÉ«²¢µã»÷¡°OK¡±ºó£¬¾Í»
 
     ui.customPlot->replot();
 }
+

@@ -44,7 +44,7 @@ int Filtering::AverageFilter(DataManager* data) {
 	}
 
 	free(dataTemp);
-	dataTemp = NULL;
+	dataTemp = nullptr;
 
 	return 0;
 }
