@@ -69,10 +69,12 @@ Test::Test(QWidget *parent)
     
     connect(ui.actionSideBar, SIGNAL(triggered()), this, SLOT(ShowSideBar()));
     if (ui.actionSideBar->isChecked()) {
-        QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
-        int x = globalPos.x();//x坐标
-        int y = globalPos.y() + ui.MENU->height();//y坐标
-        sidebar->setGeometry(x+2, y+2, ui.centralWidget->width() / 6, ui.centralWidget->height() - 4);
+        //QPoint globalPos = this->mapToGlobal(QPoint(0, 0));//父窗口绝对坐标
+        //int x = globalPos.x();//x坐标
+        //int y = globalPos.y() + ui.MENU->height();//y坐标
+        //QSize mainWindowSize = ui.centralWidget->size();
+        //sidebar->setGeometry(x + 2, y + 2, mainWindowSize.width() / 6, mainWindowSize.height() - 4);
+        sidebar->setGeometry(0, ui.MENU->height() + 1, this->width() / 6, this->height() - ui.MENU->height() - 30);
         sidebar->show();
     }
 
@@ -81,8 +83,7 @@ Test::Test(QWidget *parent)
     showMaximized();
 }
 
-Test::~Test()
-{
+Test::~Test() {
     ui.mdiArea->closeAllSubWindows();
 
     delete dataManager;
@@ -163,8 +164,7 @@ void Test::RegExp(QString& str, double& data1, double& data2) {
     rx.setMinimal(false);
 
     int pos = 0;
-    while ((pos = rx.indexIn(str, pos)) != -1)
-    {
+    while ((pos = rx.indexIn(str, pos)) != -1) {
         pos += rx.matchedLength();
         QString temp = rx.cap(1);
         data1 = temp.toDouble();
@@ -200,24 +200,38 @@ bool Test::WriteData(QString filename, int num, Data* data) {
 }
 
 void Test::SaveFile(QCPGraph* graph) {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), "", tr("Curve TagName Files (*.TXT);;Curve TagName Files (*.CSV)"));
-    if (!fileName.isEmpty())
-    {
+    QStringList filters;
+    filters << "Curve TagName Files (*.TXT)"
+        << "Curve TagName Files (*.CSV)";
+
+    QString selectedFilter;
+
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), "", filters.join(";;"), &selectedFilter);
+    if (!fileName.isEmpty()) {
         //一些处理工作，写数据到文件中
-        //QList<QwtPlotCurve*>& plotCurves = m_plot->getPlotCurves();
         QFile file(fileName);
         if (!file.open(QIODevice::ReadWrite | QIODevice::Text))
             QMessageBox::critical(this, tr("Error"), tr("Failed to open file \"%1\" for save!").arg(fileName), QMessageBox::Ok);
+
         QTextStream out(&file);
 
-        // Write curve data to file
-        QCPDataContainer<QCPGraphData> data = *graph->data();
-        QCPDataContainer<QCPGraphData>::iterator it;
-        for (it = data.begin(); it != data.end(); ++it) {
-            QString str = QString("%1,%2").arg(it->key, 0, 'f', 3).arg(it->value, 0, 'f', 3);
-            //out << it->key << "," << it->value << "\n";
-            out << str << endl;
+        if (selectedFilter == filters.at(0)) {
+            QCPDataContainer<QCPGraphData> data = *graph->data();
+            QCPDataContainer<QCPGraphData>::iterator it;
+            for (it = data.begin(); it != data.end(); ++it) {
+                QString str = QString("%1 %2").arg(it->key, 0, 'f', 3).arg(it->value, 0, 'f', 3);
+                out << str << endl;
+            }
         }
+        else if (selectedFilter == filters.at(1)) {
+            QCPDataContainer<QCPGraphData> data = *graph->data();
+            QCPDataContainer<QCPGraphData>::iterator it;
+            for (it = data.begin(); it != data.end(); ++it) {
+                QString str = QString("%1,%2").arg(it->key, 0, 'f', 3).arg(it->value, 0, 'f', 3);
+                out << str << endl;
+            }
+        }
+        // Write curve data to file
         file.close();
     }
     else
@@ -232,6 +246,7 @@ void Test::ShowPlotWindow() {
     subWindowCount = n + 1;
 
     if (n > 1) {
+        //ui.mdiArea->setViewMode(QMdiArea::TabbedView);
     }
 
     PlotWindow* plot = new PlotWindow();
@@ -243,12 +258,9 @@ void Test::ShowPlotWindow() {
 
     s = ui.mdiArea->addSubWindow(plot);
 
-    if (ui.actionSideBar->isChecked()) {
-        s->setGeometry(this->width() / 6, 0, this->width() * 5 / 6 - 5, this->height() - ui.MENU->height() - 30);
-    }
-    else {
-        s->setGeometry(0, 0, this->width()-5, this->height() - ui.MENU->height() - 30);
-    }
+    QRect rect = ui.widget_2->geometry();
+    s->setGeometry(0, rect.y(), rect.width() - 4, rect.height() - 4);
+
     plot->show();
 }
 
@@ -271,12 +283,14 @@ PlotWindow* Test::showPlot() {
 
     s = ui.mdiArea->addSubWindow(plot);
 
-    if (ui.actionSideBar->isChecked()) {
-        s->setGeometry(this->width() / 6, 0, this->width() * 5 / 6 - 5, this->height() - ui.MENU->height() - 30);
-    }
-    else {
-        s->setGeometry(0, 0, this->width() - 5, this->height() - ui.MENU->height() - 30);
-    }
+    QRect rect = ui.widget_2->geometry();
+    s->setGeometry(0, rect.y(), rect.width() - 4, rect.height() - 4);
+    //if (ui.actionSideBar->isChecked()) {
+    //    s->setGeometry(this->width() / 6, 0, this->width() * 5 / 6 - 5, this->height() - ui.MENU->height() - 30);
+    //}
+    //else {
+    //    s->setGeometry(0, 0, this->width() - 5, this->height() - ui.MENU->height() - 30);
+    //}
     plot->show();
     return plot;
 }
@@ -284,46 +298,49 @@ PlotWindow* Test::showPlot() {
 void Test::showContextMenu(QPoint pos) {
     // 获取当前鼠标的位置所在的QCPAbstractPlottable（即当前选择的曲线）
     QMdiSubWindow* subWindow = ui.mdiArea->currentSubWindow();
-    if (subWindow) {
-        PlotWindow* plot = dynamic_cast<PlotWindow*>(subWindow->widget());
-        if (plot) {
-            // 在此处使用plot指针
-            QCPAbstractPlottable* plottable = plot->ui.customPlot->plottableAt(pos);
-            if (plottable) {
-                // 如果当前选择的是曲线，则弹出菜单
-                QMenu contextMenu(this);
-                QAction* showAction = contextMenu.addAction(QString::fromLocal8Bit("在新图层中显示"));
-                connect(showAction, SIGNAL(triggered()), this, SLOT(ShowInNewPlot()));
-                
-                contextMenu.addAction(QString::fromLocal8Bit("保存数据"), this, [=]() {
-                    QCPGraph* selectedGraph = qobject_cast<QCPGraph*>(plot->ui.customPlot->selectedPlottables().first());
+    if (!subWindow)
+        return;
 
-                    // If a curve is selected, emit the curveSelected signal
-                    if (selectedGraph) {
-                        emit plot->curveSelected(selectedGraph);
-                    }
-                    connect(plot, &PlotWindow::curveSelected, this, [=](QCPGraph* graph) {
-                        QString filename = "curve_data.csv";
-                        SaveFile(graph);
-                        });
-                    });
-                //contextMenu.addAction("保存数据", this, SLOT(saveData()));
-                contextMenu.exec(plot->ui.customPlot->mapToGlobal(pos));
-            }
+    PlotWindow* plot = dynamic_cast<PlotWindow*>(subWindow->widget());
+    if (!plot)
+        return;
+
+    QCPAbstractPlottable* plottable = plot->ui.customPlot->plottableAt(pos);
+    if (!plottable)
+        return;
+
+    QMenu contextMenu(this);
+    QAction* showAction = contextMenu.addAction(QString::fromLocal8Bit("在新图层中显示"));
+    connect(showAction, SIGNAL(triggered()), this, SLOT(ShowInNewPlot()));
+
+    contextMenu.addAction(QString::fromLocal8Bit("保存数据"), this, [=]() {
+        QList<QCPGraph*> selectedGraphs = plot->ui.customPlot->selectedGraphs();
+        if (selectedGraphs.size() == 0 || selectedGraphs.size() != 1) {
+            QMessageBox::warning(this, tr("Warning"), QString::fromLocal8Bit("请选择一条曲线！"));
+            return;
         }
         else {
+            QCPGraph* selectedGraph = selectedGraphs.at(0);
+            emit plot->curveSelected(selectedGraph);
+
+            connect(plot, &PlotWindow::curveSelected, this, [=](QCPGraph* graph) {
+                SaveFile(graph);
+                });
         }
-    }
-    else {
-    }
+        });
+    contextMenu.exec(plot->ui.customPlot->mapToGlobal(pos));
 }
 
 void Test::ShowSideBar() {
     if (ui.actionSideBar->isChecked()) {
         sidebar->show();
+        ui.horizontalLayout->setStretch(0, 1);
+        ui.horizontalLayout->setStretch(1, 5);
     }
     else {
         sidebar->hide();
+        ui.horizontalLayout->setStretch(0, 0);
+        ui.horizontalLayout->setStretch(1, 6);
     }
     this->resize(this->size() - QSize(1, 1));
     this->resize(this->size() + QSize(1, 1));
@@ -335,7 +352,7 @@ void Test::resizeEvent(QResizeEvent* event) {
     }
 
     if (nullptr != sidebar && ui.actionSideBar->isChecked()) {
-        sidebar->resize(ui.centralWidget->width() / 6, ui.centralWidget->height()-4);
+        sidebar->resize(ui.centralWidget->width() / 6 + 3, ui.centralWidget->height() - 2);
     }
     else{
     }
@@ -570,8 +587,10 @@ void Test::ShowInNewPlot() {
         return;
 
     QList<QCPGraph*> selectedGraphs = plot->selectedGraphs();
-    if (selectedGraphs.size() != 1)
+    if (selectedGraphs.size() == 0 || selectedGraphs.size() != 1) {
+        QMessageBox::warning(this, tr("Warning"), QString::fromLocal8Bit("请选择一条曲线！"));
         return;
+    }
 
     PlotWindow* newPlot = showPlot();
     if (newPlot == nullptr)
@@ -584,6 +603,17 @@ void Test::ShowInNewPlot() {
     QCustomPlot* otherCustomPlot = newPlot->ui.customPlot;
     QCPGraph* graphInOtherPlot = otherCustomPlot->addGraph();
     graphInOtherPlot->setData(data);
+
+    otherCustomPlot->xAxis2->setVisible(true);
+    otherCustomPlot->xAxis2->setTickLabels(false);
+    otherCustomPlot->yAxis2->setVisible(true);
+    otherCustomPlot->yAxis2->setTickLabels(false);
+
+    connect(otherCustomPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), otherCustomPlot->xAxis2, SLOT(setRange(QCPRange)));
+    connect(otherCustomPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), otherCustomPlot->yAxis2, SLOT(setRange(QCPRange)));
+    otherCustomPlot->legend->setVisible(true);
+    otherCustomPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+        QCP::iSelectLegend | QCP::iSelectPlottables);
 
     otherCustomPlot->rescaleAxes();
     otherCustomPlot->replot();

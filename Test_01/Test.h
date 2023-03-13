@@ -11,6 +11,7 @@
 #include "SerialPort.h"
 #include "AdsorbateParameters.h"
 #include <QMenu>
+#include <QMdiArea>
 
 class Test : public QMainWindow
 {
